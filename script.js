@@ -1,7 +1,7 @@
-// script.js - v16.0 (Saudação Fixa + Voz Auto + Banco)
+// script.js - v17.0 (CSS Fix + Debug)
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzs1hlJIptANs_zPYIB4KWgsNmoXsPxp874bOti2jkSt0yCHh4Oj-fQuRMC57ygntNw/exec'; 
 
-// --- FIREBASE ---
+// FIREBASE
 const firebaseConfig = {
     apiKey: "AIzaSyCwNVNTZiUJ9qeqniRK9GHDofB9HaQTJ_c",
     authDomain: "kalango-app.firebaseapp.com",
@@ -24,7 +24,7 @@ let currentUser = null;
 
 const USUARIOS_VERIFICADOS = ['Will', 'Admin', 'Kalango', 'WillWeb', 'Suporte'];
 
-// --- LOGIN ---
+// LOGIN
 function fazerLoginGoogle() {
     const provider = new firebase.auth.GoogleAuthProvider();
     const btn = document.querySelector('button[onclick="fazerLoginGoogle()"]');
@@ -43,7 +43,6 @@ auth.onAuthStateChanged((user) => {
     if (user) {
         currentUser = user;
         document.getElementById('login-screen').classList.add('hidden');
-        
         if(document.getElementById('user-profile')) {
             document.getElementById('user-profile').classList.remove('hidden');
             document.getElementById('user-profile').classList.add('flex');
@@ -51,13 +50,9 @@ auth.onAuthStateChanged((user) => {
             document.getElementById('user-avatar').src = user.photoURL;
         }
         if(document.getElementById('username')) document.getElementById('username').value = user.displayName;
-        
         atualizarContadorCarrinho();
         if(typeof carregarCatalogo === 'function') carregarCatalogo();
-        
-        // Verifica se precisa mandar a saudação agora
         verificarSaudacaoChat();
-        
     } else {
         currentUser = null;
         document.getElementById('login-screen').classList.remove('hidden');
@@ -65,60 +60,33 @@ auth.onAuthStateChanged((user) => {
     }
 });
 
-// --- FUNÇÃO DE SAUDAÇÃO (CORRIGIDA) ---
 function verificarSaudacaoChat() {
     const area = document.getElementById('chat-messages');
-    // Só adiciona se a área existir e estiver VAZIA
     if(area && area.innerHTML.trim() === "") {
         const nome = currentUser ? currentUser.displayName.split(' ')[0] : "Visitante";
         area.innerHTML = `<div class="chat-ai text-sm mb-2">Opa, <b>${nome}</b>! 🦎<br>Sou o Kalango. Diga o que quer comprar que eu busco o melhor preço na nossa base.</div>`;
     }
 }
 
-// --- COMANDO DE VOZ (CORRIGIDO ENVIO AUTOMÁTICO) ---
 function iniciarGravacaoVoz() {
-    if (!('webkitSpeechRecognition' in window)) {
-        alert("Navegador sem suporte a voz.");
-        return;
-    }
-    
+    if (!('webkitSpeechRecognition' in window)) { alert("Navegador sem suporte a voz."); return; }
     const recognition = new webkitSpeechRecognition();
-    recognition.lang = 'pt-BR';
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    
+    recognition.lang = 'pt-BR'; recognition.continuous = false; recognition.interimResults = false;
     const btnMic = document.getElementById('btn-mic-chat');
     const iconOriginal = btnMic.innerHTML;
     
-    recognition.onstart = function() {
-        btnMic.innerHTML = '<i class="fas fa-microphone-lines text-red-500 fa-beat"></i>';
-        mostrarNotificacao("Pode falar...", "sucesso");
-    };
-    
+    recognition.onstart = function() { btnMic.innerHTML = '<i class="fas fa-microphone-lines text-red-500 fa-beat"></i>'; mostrarNotificacao("Pode falar...", "sucesso"); };
     recognition.onresult = function(event) {
         const texto = event.results[0][0].transcript;
         const input = document.getElementById('chat-input');
         input.value = texto;
-        
-        // ENVIO AUTOMÁTICO (DELAY DE 500ms PARA GARANTIR)
-        setTimeout(() => {
-            enviarMensagemGemini();
-        }, 500);
+        setTimeout(() => { enviarMensagemGemini(); }, 500);
     };
-    
-    recognition.onerror = function(event) {
-        mostrarNotificacao("Não entendi.", "erro");
-        btnMic.innerHTML = iconOriginal;
-    };
-    
-    recognition.onend = function() {
-        btnMic.innerHTML = iconOriginal;
-    };
-    
+    recognition.onerror = function(event) { mostrarNotificacao("Não entendi.", "erro"); btnMic.innerHTML = iconOriginal; };
+    recognition.onend = function() { btnMic.innerHTML = iconOriginal; };
     recognition.start();
 }
 
-// --- CHAT ---
 async function enviarMensagemGemini() {
     const input = document.getElementById('chat-input');
     const txt = input.value.trim();
@@ -129,8 +97,6 @@ async function enviarMensagemGemini() {
     
     const idLoad = 'load-' + Date.now();
     const area = document.getElementById('chat-messages');
-    
-    // Status Digitando...
     area.innerHTML += `<div id="${idLoad}" class="chat-ai text-sm mb-2 opacity-50"><i class="fas fa-keyboard fa-pulse"></i> Digitando...</div>`;
     area.scrollTop = area.scrollHeight;
     
@@ -143,23 +109,20 @@ async function enviarMensagemGemini() {
         
         let resposta = data.resposta || "Oxe, fiquei mudo.";
         
-        // Processa comando ADD
         const comandoAdd = resposta.match(/\|\|ADD:(.*?)\|\|/);
         if (comandoAdd && comandoAdd[1]) {
             const partes = comandoAdd[1].split('::');
             const prod = partes[0].trim();
             const prec = partes[1] ? parseFloat(partes[1].trim()) : 0;
             const merc = partes[2] ? partes[2].trim() : "Chat";
-            
             adicionarAoCarrinho(prod, prec, merc);
             resposta = resposta.replace(comandoAdd[0], "");
         }
-        
         renderizarMensagem(resposta, 'ai');
         
     } catch (e) {
         if(document.getElementById(idLoad)) document.getElementById(idLoad).remove();
-        renderizarMensagem("⚠️ Erro de conexão.", 'ai');
+        renderizarMensagem("⚠️ Erro de conexão com o servidor.", 'ai');
     }
 }
 
@@ -171,8 +134,6 @@ function renderizarMensagem(texto, remetente) {
     area.appendChild(div);
     area.scrollTop = area.scrollHeight;
 }
-
-// --- DEMAIS FUNÇÕES (CARRINHO, CÂMERA, ETC) ---
 
 function gerarSeloUsuario(nome) {
     if (!nome) return `<span class="text-[9px] text-slate-500 italic">Anônimo</span>`;
@@ -192,8 +153,6 @@ async function trocarAba(aba) {
         else btn.classList.remove('hidden');
     }
     if (aba === 'catalogo') carregarCatalogo();
-    
-    // CORREÇÃO: Verifica a saudação ao abrir a aba chat
     if (aba === 'chat') { 
         verificarSaudacaoChat();
         const ca = document.getElementById('chat-messages'); 
@@ -291,7 +250,39 @@ function mostrarNotificacao(msg, tipo = 'sucesso') {
 
 function comprimirImagem(file) { return new Promise((resolve) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = (e) => { const img = new Image(); img.src = e.target.result; img.onload = () => { const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); const scale = 800 / img.width; canvas.width = 800; canvas.height = img.height * scale; ctx.drawImage(img, 0, 0, canvas.width, canvas.height); resolve(canvas.toDataURL('image/jpeg', 0.6)); }; }; }); }
 
-// --- EVENTOS FINAIS ---
+async function carregarCatalogo() {
+    const lista = document.getElementById('lista-catalogo'); const select = document.getElementById('filtro-mercado-catalogo'); if(!lista) return;
+    lista.innerHTML = `<div class="text-center py-10 opacity-30"><i class="fas fa-spinner fa-spin text-2xl"></i><p>Buscando ofertas...</p></div>`;
+    try { 
+        const res = await fetch(`${APPS_SCRIPT_URL}?acao=listarCatalogo`, { redirect: 'follow' }); const data = await res.json(); 
+        if (data.catalogo && data.catalogo.length > 0) { 
+            catalogoDados = data.catalogo; atualizarListaCatalogo(catalogoDados); 
+            if(select && select.options.length <= 1) { [...new Set(catalogoDados.map(i => i.mercado))].forEach(m => { const opt = document.createElement('option'); opt.value = m; opt.textContent = m; select.appendChild(opt); }); }
+        } else { lista.innerHTML = `<div class="text-center py-10 opacity-30"><p>Nada cadastrado.</p></div>`; } 
+    } catch (e) { lista.innerHTML = `<div class="text-center py-10 opacity-50"><p>Erro ao carregar.</p></div>`; }
+}
+
+function atualizarListaCatalogo(dados) {
+    const lista = document.getElementById('lista-catalogo'); if(!lista) return; lista.innerHTML = '';
+    dados.forEach(item => { 
+        const img = (item.imagem && item.imagem.length > 10) ? item.imagem : "https://cdn-icons-png.flaticon.com/512/2748/2748558.png"; 
+        const div = document.createElement('div'); div.className = "bg-slate-800 border border-slate-700 p-3 rounded-xl flex gap-3 items-center shadow-sm mb-3"; 
+        div.innerHTML = `<div class="w-12 h-12 bg-white/5 rounded-lg p-1 flex-shrink-0 flex items-center justify-center"><img src="${img}" class="max-w-full max-h-full object-contain"></div><div class="flex-1 min-w-0"><h4 class="text-xs font-bold text-white truncate">${item.produto}</h4><div class="flex justify-between items-end mt-1"><div><span class="text-emerald-400 font-black text-sm block">R$ ${item.preco.toFixed(2).replace('.', ',')}</span><span class="text-[9px] text-slate-400 bg-slate-900 px-1.5 py-0.5 rounded truncate max-w-[80px] inline-block">${item.mercado}</span></div><div class="text-right">${gerarSeloUsuario(item.usuario)}</div></div></div><button onclick="adicionarAoCarrinho('${item.produto.replace(/'/g, "\\'")}', ${item.preco}, '${item.mercado.replace(/'/g, "\\'")}')" class="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white flex items-center justify-center transition-colors"><i class="fas fa-plus"></i></button>`; lista.appendChild(div); 
+    });
+}
+
+async function pesquisarPrecos() {
+    const busca = document.getElementById('ean-busca').value; const container = document.getElementById('resultados-consulta'); const btn = document.getElementById('btn-pesquisar'); if (!busca) return mostrarNotificacao("Digite algo!", "erro");
+    const iconOriginal = btn.innerHTML; btn.innerHTML = '<div class="loader w-4 h-4 border-slate-900"></div>'; container.innerHTML = ''; 
+    try { 
+        const res = await fetch(`${APPS_SCRIPT_URL}?acao=consultarPrecos&ean=${encodeURIComponent(busca)}`, { redirect: 'follow' }); const data = await res.json(); btn.innerHTML = iconOriginal; 
+        if (!data.resultados || data.resultados.length === 0) { container.innerHTML = `<div class="text-center py-8 opacity-50 bg-slate-800 rounded-xl"><p>Não achei nada.</p></div>`; return; } 
+        const lista = data.resultados.sort((a, b) => a.preco - b.preco);
+        const h = document.createElement('div'); h.className = "mb-4 bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20"; h.innerHTML = `<h3 class="text-sm font-bold text-emerald-400">Resultados para "${busca}"</h3>`; container.appendChild(h); 
+        lista.forEach((item, index) => { const eMaisBarato = index === 0; const img = (item.imagem && item.imagem.length > 10) ? item.imagem : "https://cdn-icons-png.flaticon.com/512/2748/2748558.png"; const card = document.createElement('div'); card.className = `p-4 rounded-2xl mb-3 relative overflow-hidden flex gap-3 ${eMaisBarato ? 'bg-gradient-to-br from-emerald-900 to-slate-800 border border-emerald-500 shadow-lg' : 'bg-slate-800 border border-slate-700'}`; card.innerHTML = `<div class="w-14 h-14 bg-white/5 rounded-xl p-1 flex-shrink-0 flex items-center justify-center"><img src="${img}" class="max-w-full max-h-full object-contain"></div><div class="flex-1 relative z-10 min-w-0">${eMaisBarato ? `<span class="bg-emerald-500 text-slate-900 text-[8px] font-black px-1.5 py-0.5 rounded uppercase absolute -top-1 right-0">Melhor Preço</span>` : ''}<h3 class="text-xl font-black ${eMaisBarato ? 'text-emerald-400' : 'text-white'}">R$ ${item.preco.toFixed(2).replace('.', ',')}</h3><p class="font-bold text-xs uppercase text-slate-300 truncate">${item.mercado}</p><div class="mt-1 flex justify-between items-end"><p class="text-[9px] text-slate-500 truncate max-w-[100px]">${item.produto}</p>${gerarSeloUsuario(item.usuario)}</div></div><button onclick="adicionarAoCarrinho('${item.produto.replace(/'/g, "\\'")}', ${item.preco}, '${item.mercado.replace(/'/g, "\\'")}')" class="self-center w-10 h-10 rounded-full bg-slate-700 hover:bg-emerald-500 hover:text-white text-emerald-500 flex items-center justify-center transition-colors shadow-lg z-20"><i class="fas fa-cart-plus"></i></button>`; container.appendChild(card); }); 
+    } catch (err) { mostrarNotificacao("Erro na busca.", "erro"); btn.innerHTML = iconOriginal; }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     atualizarContadorCarrinho();
     
@@ -304,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(document.getElementById('btn-pesquisar')) document.getElementById('btn-pesquisar').addEventListener('click', pesquisarPrecos);
     if(document.getElementById('price-form')) document.getElementById('price-form').addEventListener('submit', salvarPreco);
     
-    // BOTÃO MICROFONE DINÂMICO
+    // Botão Mic
     const divInput = document.getElementById('chat-input').parentElement;
     if(divInput && !document.getElementById('btn-mic-chat')) {
         const btnMic = document.createElement('button');
@@ -315,11 +306,13 @@ document.addEventListener('DOMContentLoaded', () => {
         divInput.appendChild(btnMic);
     }
     
+    // Foto
     const btnFoto = document.getElementById('btn-camera-foto'); const inputFoto = document.getElementById('input-foto-produto'); const imgPreview = document.getElementById('preview-imagem'); const urlField = document.getElementById('image-url-field');
     if(btnFoto && inputFoto) { btnFoto.addEventListener('click', () => inputFoto.click()); inputFoto.addEventListener('change', async (e) => { if(e.target.files && e.target.files[0]) { const file = e.target.files[0]; btnFoto.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>'; try { const base64 = await comprimirImagem(file); imgPreview.src = base64; imgPreview.classList.remove('hidden'); btnFoto.classList.add('hidden'); urlField.value = base64; } catch(err) { mostrarNotificacao("Erro na foto", "erro"); btnFoto.innerHTML = '<i class="fas fa-camera text-slate-400 text-2xl mb-1"></i><span class="text-[9px] text-slate-400 font-bold uppercase">Foto</span>'; } } }); }
     
+    // Mercados
     (async () => { try { const res = await fetch(`${APPS_SCRIPT_URL}?acao=buscarMercados`, { redirect: 'follow' }); const d = await res.json(); const s = document.getElementById('market'); if(d.mercados && s) { s.innerHTML = ''; d.mercados.forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; s.appendChild(o); }); } } catch(e) {} })();
     
+    // Cache
     if ('serviceWorker' in navigator) { navigator.serviceWorker.getRegistrations().then(function(registrations) { for(let registration of registrations) { registration.unregister(); } }); }
 });
-
