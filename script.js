@@ -3,7 +3,7 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzs1hlJIptANs_z
 
 // FIREBASE
 const firebaseConfig = {
-    apiKey: "AIzaSyCwNVNTZiUJ9qeqniRK9GHDofB9HaQTJ_c",
+    apiKey: "AIzaSyC-tg3QxJ3aQEpMuEEGu8DKoPyPCsUBhrw",
     authDomain: "kalango-app.firebaseapp.com",
     projectId: "kalango-app",
     storageBucket: "kalango-app.firebasestorage.app",
@@ -316,3 +316,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // Cache
     if ('serviceWorker' in navigator) { navigator.serviceWorker.getRegistrations().then(function(registrations) { for(let registration of registrations) { registration.unregister(); } }); }
 });
+
