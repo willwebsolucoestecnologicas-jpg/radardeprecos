@@ -1,4 +1,4 @@
-// script.js - v35.0 (Com Voz do Kalango!)
+// script.js - v36.0 (Com Motor de Voz Premium do Kalango!)
 
 // ⚠️ VERIFIQUE SE ESTE LINK ABAIXO É O DO SEU APPS SCRIPT
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzs1hlJIptANs_zPYIB4KWgsNmoXsPxp874bOti2jkSt0yCHh4Oj-fQuRMC57ygntNw/exec'; 
@@ -33,19 +33,54 @@ const USUARIOS_VERIFICADOS = ['Will', 'Admin', 'Kalango', 'WillWeb', 'Suporte'];
 // CHAT E INTELIGÊNCIA ARTIFICIAL (VOZ E TEXTO)
 // =========================================================================
 
-// NOVIDADE: O Motor de Voz do Kalango
+// NOVIDADE: O Motor de Voz Premium do Kalango
+let vozesDisponiveis = [];
+
+// O navegador demora uns milissegundos para carregar as vozes premium, isso garante que vamos pegá-las
+if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = () => {
+        vozesDisponiveis = window.speechSynthesis.getVoices();
+    };
+}
+
 function falarComVozDoKalango(texto) {
-    if (!('speechSynthesis' in window)) return; // Verifica se o celular suporta
+    if (!('speechSynthesis' in window)) return;
     
-    window.speechSynthesis.cancel(); // Para de falar a msg antiga, se estiver falando
+    window.speechSynthesis.cancel(); // Para de falar
     
-    // Limpa o texto (tira marcações como **, _ ou tags HTML) para a voz sair natural
+    // Limpa o texto (tira ** e formatações)
     const textoLimpo = texto.replace(/<[^>]*>?/gm, '').replace(/[*_]/g, '');
     
     const fala = new SpeechSynthesisUtterance(textoLimpo);
-    fala.lang = 'pt-BR'; // Português do Brasil
-    fala.rate = 1.05;    // Velocidade um pouquinho mais rápida e dinâmica
-    fala.pitch = 1.1;    // Tom de voz levemente mais agudo pra dar personalidade
+    fala.lang = 'pt-BR'; 
+    fala.rate = 1.0;  // Velocidade normal (1.0 = humano, profissional)
+    fala.pitch = 1.0; // Tom de voz normal (sem parecer rádio)
+    
+    // Busca todas as vozes que o celular tem
+    let vozes = window.speechSynthesis.getVoices();
+    if (vozes.length === 0) vozes = vozesDisponiveis;
+
+    // Caçador de Voz Premium
+    if (vozes.length > 0) {
+        // Pega só as vozes em Português do Brasil
+        const vozesBR = vozes.filter(v => v.lang === 'pt-BR' || v.lang === 'pt_BR');
+        
+        if (vozesBR.length > 0) {
+            // Tenta achar a voz mais profissional possível (Google Cloud ou Apple Premium)
+            const vozProfissional = vozesBR.find(v => 
+                v.name.includes('Google') || 
+                v.name.includes('Premium') || 
+                v.name.includes('Luciana') || // Voz muito boa do iOS
+                v.name.includes('Online')
+            );
+            
+            if (vozProfissional) {
+                fala.voice = vozProfissional;
+            } else {
+                fala.voice = vozesBR[0]; // Pega a primeira do BR se não achar a premium
+            }
+        }
+    }
     
     window.speechSynthesis.speak(fala);
 }
@@ -93,7 +128,7 @@ async function enviarMensagemGemini() {
             respostaFinal = respostaFinal.replace(comandoAdd[0], "");
         }
 
-        // 🌟 AQUI A MÁGICA ACONTECE: Manda o Kalango falar a resposta em voz alta!
+        // 🌟 Manda o Kalango falar a resposta em voz alta!
         falarComVozDoKalango(respostaFinal);
 
         // Exibe o texto na tela
