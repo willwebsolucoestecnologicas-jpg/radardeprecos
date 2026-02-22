@@ -479,6 +479,12 @@ async function onScanSuccess(t) {
         document.getElementById('registrar-home').classList.add('hidden'); 
         document.getElementById('price-form-section').classList.remove('hidden'); 
         
+        // 🔥 CORREÇÃO DO SCROLL E DO BOTÃO ESCONDIDO 🔥
+        // Destrava a altura e o centro da tela para permitir a rolagem até o botão Salvar
+        const container = document.getElementById('registrar-container');
+        container.classList.remove('h-full', 'justify-center');
+        container.classList.add('pb-12'); // Dá um espaço extra no final para o rodapé
+        
         // 2. Preenche o código EAN e avisa que está buscando
         document.getElementById('ean-field').value = t; 
         document.getElementById('product-name').value = "Buscando..."; 
@@ -501,6 +507,7 @@ async function onScanSuccess(t) {
         } 
     } 
 }
+
 async function salvarPreco(e) { 
     e.preventDefault(); 
     const p = { 
@@ -616,4 +623,5 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e) {} 
     })(); 
 });
+
 
