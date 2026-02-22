@@ -1,55 +1,84 @@
-/* Custom CSS */
-body { font-family: 'Inter', sans-serif; }
+/* Custom CSS - Visual Premium Kalango */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
+
+body { 
+    font-family: 'Inter', sans-serif; 
+    background-color: #0b1120; /* Fundo um pouco mais escuro para destacar o neon */
+}
 
 h1.gradient-text {
-    background: linear-gradient(45deg, var(--primary), var(--secondary), var(--accent));
+    background: linear-gradient(135deg, #10b981, #3b82f6);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    background-size: 200% 200%;
-    animation: gradient-shift 6s ease infinite;
 }
 
-@keyframes gradient-shift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+/* Animação de entrada suave */
+.animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-.button-glow { position: relative; overflow: hidden; }
-.button-glow::before {
-    content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%);
-    transform: rotate(45deg); transition: transform 0.5s ease-in-out; opacity: 0;
+/* Botões com Efeito Neon e Glow */
+.btn-neon {
+    background: linear-gradient(135deg, #10b981, #059669);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    transition: all 0.3s ease;
 }
-.button-glow:hover::before { transform: rotate(225deg); opacity: 1; }
-
-#reader { position: relative; border: 3px solid rgba(79, 70, 229, 0.5); box-shadow: 0 0 15px rgba(79, 70, 229, 0.4); }
-.scanner-overlay {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(to bottom, rgba(79, 70, 229, 0.2), transparent 50%, rgba(79, 70, 229, 0.2));
-    background-size: 100% 200%; animation: scan-line 3s infinite linear; border-radius: 8px; pointer-events: none;
+.btn-neon:hover {
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+    transform: translateY(-2px);
 }
-@keyframes scan-line { 0% { background-position: 0% 0%; } 100% { background-position: 0% 100%; } }
 
-div[data-html5-qrcode-id="html5-qrcode-button-camera-start"], div[data-html5-qrcode-id="html5-qrcode-select-camera"] { display: none !important; }
-.hidden.opacity-0 { display: none; opacity: 0; }
-.visible.opacity-100 { display: block; opacity: 1; }
-
-.loader {
-    border: 4px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 4px solid var(--primary);
-    width: 24px; height: 24px; animation: spin 1s linear infinite; margin: auto;
+/* Glassmorphism (Efeito Vidro) */
+.glass-panel {
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-.alert-success { background-color: #10B981; color: white; padding: 12px; border-radius: 8px; margin-top: 16px; text-align: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-.alert-error { background-color: #EF4444; color: white; padding: 12px; border-radius: 8px; margin-top: 16px; text-align: center; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-
-/* --- NOVAS CORES DO CHAT --- */
+/* --- CHAT PREMIUM --- */
 .chat-user {
-    align-self: flex-end; background: #10b981; color: white; border-radius: 18px 18px 4px 18px;
-    padding: 10px 14px; max-width: 85%; margin-left: auto; text-align: right; box-shadow: 0 2px 5px rgba(0,0,0,0.2); font-weight: 500;
+    align-self: flex-end; 
+    background: linear-gradient(135deg, #10b981, #047857); /* Gradiente Verde */
+    color: white; 
+    border-radius: 20px 20px 4px 20px;
+    padding: 12px 16px; 
+    max-width: 85%; 
+    margin-left: auto; 
+    text-align: right; 
+    box-shadow: 0 4px 15px rgba(16,185,129,0.3); /* Sombra Neon */
+    font-weight: 500;
 }
+
 .chat-ai {
-    align-self: flex-start; background: #334155; color: #f1f5f9; border: 1px solid #475569;
-    border-radius: 18px 18px 18px 4px; padding: 10px 14px; max-width: 90%; margin-right: auto; text-align: left; line-height: 1.5;
+    align-self: flex-start; 
+    background: rgba(30, 41, 59, 0.8); /* Fundo Vidro Escuro */
+    backdrop-filter: blur(10px);
+    color: #f8fafc; 
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px 20px 20px 4px; 
+    padding: 12px 16px; 
+    max-width: 90%; 
+    margin-right: auto; 
+    text-align: left; 
+    line-height: 1.6;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
+
+/* Animação do microfone ouvindo */
+.mic-listening {
+    animation: pulse-red 1.5s infinite;
+}
+@keyframes pulse-red {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* Ocultar barra de rolagem mas manter funcionamento */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
