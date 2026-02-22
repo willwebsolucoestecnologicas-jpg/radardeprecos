@@ -121,8 +121,52 @@ function onScanSuccess(t) { fecharCamera(); if(modoScanAtual==='pesquisar') { tr
 async function pesquisarPrecos() { const t = document.getElementById('ean-busca').value; const r = await fetch(`${APPS_SCRIPT_URL}?acao=consultarPrecos&ean=${t}`, { redirect: 'follow' }); const d = await r.json(); const c = document.getElementById('resultados-consulta'); c.innerHTML = ''; d.resultados.forEach(i => { c.innerHTML += `<div class="bg-slate-800 p-3 rounded mb-2"><b>${i.produto}</b> - R$ ${i.preco} (${i.mercado})</div>`; }); }
 async function salvarPreco(e) { e.preventDefault(); const p = { ean: document.getElementById('ean-field').value, produto: document.getElementById('product-name').value, preco: document.getElementById('price').value, mercado: document.getElementById('market').value, usuario: document.getElementById('username').value }; await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(p), mode: 'no-cors' }); mostrarNotificacao("Salvo!"); }
 function comprimirImagem(file) { return new Promise((resolve) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = (e) => { const img = new Image(); img.src = e.target.result; img.onload = () => { const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); const scale = 800 / img.width; canvas.width = 800; canvas.height = img.height * scale; ctx.drawImage(img, 0, 0, canvas.width, canvas.height); resolve(canvas.toDataURL('image/jpeg', 0.6)); }; }; }); }
+// --- FUNÇÃO DE VOZ DO KALANGO ---
+function iniciarGravacaoVoz() {
+    // Verifica se o celular/navegador suporta gravação
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) { 
+        mostrarNotificacao("Seu navegador não suporta gravação de voz.", "erro"); 
+        return; 
+    }
+    
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const rec = new SpeechRecognition();
+    
+    rec.lang = 'pt-BR'; // Português do Brasil
+    rec.interimResults = false; // Só pega a frase final
+    
+    const btnMic = document.getElementById('btn-mic-chat');
+    const inputChat = document.getElementById('chat-input');
+    const iconOriginal = btnMic.innerHTML;
+    
+    // Quando começar a ouvir
+    rec.onstart = () => { 
+        btnMic.innerHTML = '<i class="fas fa-microphone text-red-500 fa-beat"></i>'; 
+        inputChat.placeholder = "Ouvindo patrão..."; 
+    };
+    
+    // Quando entender o que você falou
+    rec.onresult = (e) => {
+        const textoFalado = e.results[0][0].transcript;
+        inputChat.value = textoFalado; // Coloca o texto na caixa
+        setTimeout(enviarMensagemGemini, 500); // Envia automaticamente após meio segundo!
+    };
+    
+    // Se der erro ou parar
+    rec.onerror = () => { mostrarNotificacao("Não entendi direito.", "erro"); };
+    
+    // Finaliza e volta o ícone ao normal
+    rec.onend = () => { 
+        btnMic.innerHTML = iconOriginal; 
+        inputChat.placeholder = "Fale com o Kalango..."; 
+    };
+    
+    // Inicia a escuta
+    rec.start();
+}
 document.addEventListener('DOMContentLoaded', () => { atualizarContadorCarrinho(); if(document.getElementById('btn-enviar-chat')) document.getElementById('btn-enviar-chat').addEventListener('click', enviarMensagemGemini); 
     const btnFoto = document.getElementById('btn-camera-foto'); const inputFoto = document.getElementById('input-foto-produto'); const imgPreview = document.getElementById('preview-imagem'); const urlField = document.getElementById('image-url-field');
     if(btnFoto && inputFoto) { btnFoto.addEventListener('click', () => inputFoto.click()); inputFoto.addEventListener('change', async (e) => { if(e.target.files && e.target.files[0]) { const file = e.target.files[0]; btnFoto.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>'; try { const base64 = await comprimirImagem(file); imgPreview.src = base64; imgPreview.classList.remove('hidden'); btnFoto.classList.add('hidden'); urlField.value = base64; } catch(err) { mostrarNotificacao("Erro na foto", "erro"); btnFoto.innerHTML = '<i class="fas fa-camera text-slate-400 text-2xl mb-1"></i><span class="text-[9px] text-slate-400 font-bold uppercase">Foto</span>'; } } }); }
     const f = document.getElementById('filtro-mercado-catalogo'); if(f) f.addEventListener('change', () => { const v = f.value; if(v === 'todos') atualizarListaCatalogo(catalogoDados); else atualizarListaCatalogo(catalogoDados.filter(i => i.mercado === v)); });
     if(document.getElementById('btn-pesquisar')) document.getElementById('btn-pesquisar').addEventListener('click', pesquisarPrecos); if(document.getElementById('price-form')) document.getElementById('price-form').addEventListener('submit', salvarPreco); (async () => { try { const res = await fetch(`${APPS_SCRIPT_URL}?acao=buscarMercados`, { redirect: 'follow' }); const d = await res.json(); const s = document.getElementById('market'); if(d.mercados && s) { s.innerHTML = ''; d.mercados.forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; s.appendChild(o); }); } } catch(e) {} })(); });
+
