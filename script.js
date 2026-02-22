@@ -1,6 +1,6 @@
-// script.js - v34.0 (Formatado, Comentado e Chat Principal)
+// script.js - v35.0 (Com Voz do Kalango!)
 
-// ⚠️ VERIFIQUE SE ESTE LINK ABAIXO É O NOVO DO SEU APPS SCRIPT
+// ⚠️ VERIFIQUE SE ESTE LINK ABAIXO É O DO SEU APPS SCRIPT
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzs1hlJIptANs_zPYIB4KWgsNmoXsPxp874bOti2jkSt0yCHh4Oj-fQuRMC57ygntNw/exec'; 
 
 // --- CHAVE DO FIREBASE (LOGIN DO GOOGLE) ---
@@ -20,7 +20,6 @@ if (!firebase.apps.length) {
 }
 const auth = firebase.auth();
 
-// --- VARIÁVEIS GLOBAIS ---
 let html5QrCode;
 let scannerIsRunning = false;
 let catalogoDados = [];
@@ -31,8 +30,25 @@ let currentUser = null;
 const USUARIOS_VERIFICADOS = ['Will', 'Admin', 'Kalango', 'WillWeb', 'Suporte'];
 
 // =========================================================================
-// CHAT E INTELIGÊNCIA ARTIFICIAL
+// CHAT E INTELIGÊNCIA ARTIFICIAL (VOZ E TEXTO)
 // =========================================================================
+
+// NOVIDADE: O Motor de Voz do Kalango
+function falarComVozDoKalango(texto) {
+    if (!('speechSynthesis' in window)) return; // Verifica se o celular suporta
+    
+    window.speechSynthesis.cancel(); // Para de falar a msg antiga, se estiver falando
+    
+    // Limpa o texto (tira marcações como **, _ ou tags HTML) para a voz sair natural
+    const textoLimpo = texto.replace(/<[^>]*>?/gm, '').replace(/[*_]/g, '');
+    
+    const fala = new SpeechSynthesisUtterance(textoLimpo);
+    fala.lang = 'pt-BR'; // Português do Brasil
+    fala.rate = 1.05;    // Velocidade um pouquinho mais rápida e dinâmica
+    fala.pitch = 1.1;    // Tom de voz levemente mais agudo pra dar personalidade
+    
+    window.speechSynthesis.speak(fala);
+}
 
 async function enviarMensagemGemini() {
     const input = document.getElementById('chat-input');
@@ -41,7 +57,6 @@ async function enviarMensagemGemini() {
     
     if (!txt) return;
 
-    // 1. Renderiza msg do usuário (Verde)
     const divUser = document.createElement('div');
     divUser.className = 'chat-user text-sm mb-2';
     divUser.textContent = txt;
@@ -50,7 +65,6 @@ async function enviarMensagemGemini() {
     input.value = ''; 
     area.scrollTop = area.scrollHeight;
 
-    // 2. Animação de Loading
     const id = 'load-' + Date.now();
     const divLoad = document.createElement('div');
     divLoad.id = id;
@@ -60,17 +74,14 @@ async function enviarMensagemGemini() {
     area.scrollTop = area.scrollHeight;
 
     try {
-        // Envia pergunta pro Google Apps Script
         const res = await fetch(`${APPS_SCRIPT_URL}?acao=chatGemini&pergunta=${encodeURIComponent(txt)}`, { redirect: 'follow' });
         const data = await res.json();
         
-        // Remove a mensagem de "Digitando..."
         document.getElementById(id).remove();
         
         let respostaFinal = data.resposta || "Sem resposta.";
 
-        // 3. --- LÓGICA DO CARRINHO (IMPORTANTE) ---
-        // Se a IA mandou adicionar, ele lê o código invisível e executa
+        // Lê comandos de carrinho invisíveis
         const comandoAdd = respostaFinal.match(/\|\|ADD:(.*?)\|\|/);
         if (comandoAdd && comandoAdd[1]) {
             const partes = comandoAdd[1].split('::');
@@ -79,11 +90,13 @@ async function enviarMensagemGemini() {
             const merc = partes[2] ? partes[2].trim() : "Chat";
             
             adicionarAoCarrinho(prod, prec, merc);
-            // Remove o código técnico da resposta para o usuário não ver
             respostaFinal = respostaFinal.replace(comandoAdd[0], "");
         }
 
-        // 4. Exibe a resposta final formatada
+        // 🌟 AQUI A MÁGICA ACONTECE: Manda o Kalango falar a resposta em voz alta!
+        falarComVozDoKalango(respostaFinal);
+
+        // Exibe o texto na tela
         const divAI = document.createElement('div');
         divAI.className = 'chat-ai text-sm mb-2';
         divAI.innerHTML = respostaFinal.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
@@ -119,12 +132,13 @@ function iniciarGravacaoVoz() {
     rec.onstart = () => { 
         btnMic.innerHTML = '<i class="fas fa-microphone text-red-500 fa-beat"></i>'; 
         inputChat.placeholder = "Ouvindo patrão..."; 
+        // Para o Kalango de falar se você for falar algo novo por cima
+        window.speechSynthesis.cancel(); 
     };
     
     rec.onresult = (e) => {
         const textoFalado = e.results[0][0].transcript;
         inputChat.value = textoFalado;
-        // Envia direto após falar!
         setTimeout(enviarMensagemGemini, 500); 
     };
     
@@ -132,7 +146,7 @@ function iniciarGravacaoVoz() {
     
     rec.onend = () => { 
         btnMic.innerHTML = iconOriginal; 
-        inputChat.placeholder = "Fale com o Kalango..."; 
+        inputChat.placeholder = "Digite ou mande áudio..."; 
     };
     
     rec.start();
@@ -289,7 +303,6 @@ auth.onAuthStateChanged((user) => {
         
         if(typeof carregarCatalogo === 'function') carregarCatalogo();
         
-        // 🌟 AQUI ESTÁ A MUDANÇA: Abre o Chat direto após login
         trocarAba('chat');
         
     } else { 
@@ -470,12 +483,10 @@ function comprimirImagem(file) {
 document.addEventListener('DOMContentLoaded', () => { 
     atualizarContadorCarrinho(); 
     
-    // Listeners do Chat
     if(document.getElementById('btn-enviar-chat')) {
         document.getElementById('btn-enviar-chat').addEventListener('click', enviarMensagemGemini); 
     }
     
-    // Enter no chat
     const inputChat = document.getElementById('chat-input');
     if(inputChat) {
         inputChat.addEventListener('keypress', function (e) {
@@ -485,7 +496,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Listeners da Foto do Produto
     const btnFoto = document.getElementById('btn-camera-foto'); 
     const inputFoto = document.getElementById('input-foto-produto'); 
     const imgPreview = document.getElementById('preview-imagem'); 
@@ -512,7 +522,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }); 
     }
     
-    // Listener do Filtro do Catálogo
     const f = document.getElementById('filtro-mercado-catalogo'); 
     if(f) {
         f.addEventListener('change', () => { 
@@ -522,7 +531,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Listeners Formulários e Buscas
     if(document.getElementById('btn-pesquisar')) {
         document.getElementById('btn-pesquisar').addEventListener('click', pesquisarPrecos); 
     }
@@ -531,7 +539,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('price-form').addEventListener('submit', salvarPreco); 
     }
     
-    // Carrega os mercados pro Select
     (async () => { 
         try { 
             const res = await fetch(`${APPS_SCRIPT_URL}?acao=buscarMercados`, { redirect: 'follow' }); 
