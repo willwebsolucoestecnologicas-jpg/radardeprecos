@@ -465,18 +465,42 @@ function fecharCamera() {
     document.getElementById('scanner-modal').classList.add('hidden'); 
 }
 
-function onScanSuccess(t) { 
+async function onScanSuccess(t) { 
     fecharCamera(); 
-    if(modoScanAtual === 'pesquisar') { 
+    
+    if (modoScanAtual === 'pesquisar') { 
         trocarAba('consultar'); 
         document.getElementById('ean-busca').value = t; 
         pesquisarPrecos(); 
     } else { 
         trocarAba('registrar'); 
+        
+        // 1. Esconde a tela inicial da câmera e mostra o formulário
+        document.getElementById('registrar-home').classList.add('hidden'); 
+        document.getElementById('price-form-section').classList.remove('hidden'); 
+        
+        // 2. Preenche o código EAN e avisa que está buscando
         document.getElementById('ean-field').value = t; 
+        document.getElementById('product-name').value = "Buscando..."; 
+        
+        // 3. Vai no backend (Cosmos) buscar o nome e a foto do produto
+        try { 
+            const res = await fetch(`${APPS_SCRIPT_URL}?ean=${t}`, { redirect: 'follow' }); 
+            const data = await res.json(); 
+            
+            document.getElementById('product-name').value = data.nome || ""; 
+            
+            if (data.imagem && data.imagem.startsWith('http')) { 
+                document.getElementById('image-url-field').value = data.imagem; 
+                document.getElementById('preview-imagem').src = data.imagem; 
+                document.getElementById('preview-imagem').classList.remove('hidden'); 
+                document.getElementById('btn-camera-foto').classList.add('hidden'); 
+            } 
+        } catch(e) { 
+            document.getElementById('product-name').value = ""; 
+        } 
     } 
 }
-
 async function salvarPreco(e) { 
     e.preventDefault(); 
     const p = { 
@@ -592,3 +616,4 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e) {} 
     })(); 
 });
+
