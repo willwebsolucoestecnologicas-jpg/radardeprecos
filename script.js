@@ -326,6 +326,13 @@ auth.onAuthStateChanged((user) => {
         currentUser = user; 
         document.getElementById('login-screen').classList.add('hidden'); 
         
+        // 🔥 NOVIDADE: Mostra o aplicativo inteiro só depois do login!
+        const appContent = document.getElementById('app-content');
+        if(appContent) {
+            appContent.classList.remove('hidden');
+            appContent.classList.add('flex');
+        }
+        
         if(document.getElementById('user-profile')) { 
             document.getElementById('user-profile').classList.remove('hidden'); 
             document.getElementById('user-profile').classList.add('flex'); 
@@ -343,8 +350,16 @@ auth.onAuthStateChanged((user) => {
     } else { 
         currentUser = null; 
         document.getElementById('login-screen').classList.remove('hidden'); 
+        
+        // 🔥 NOVIDADE: Esconde o aplicativo se não estiver logado
+        const appContent = document.getElementById('app-content');
+        if(appContent) {
+            appContent.classList.add('hidden');
+            appContent.classList.remove('flex');
+        }
     } 
 });
+
 
 async function trocarAba(aba) { 
     const abas = ['registrar', 'consultar', 'catalogo', 'chat']; 
