@@ -43,48 +43,38 @@ if ('speechSynthesis' in window) {
     };
 }
 
-function falarComVozDoKalango(texto) {
-    if (!('speechSynthesis' in window)) return;
-    
-    window.speechSynthesis.cancel(); // Para de falar
-    
-    // Limpa o texto (tira ** e formatações)
-    const textoLimpo = texto.replace(/<[^>]*>?/gm, '').replace(/[*_]/g, '');
-    
-    const fala = new SpeechSynthesisUtterance(textoLimpo);
-    fala.lang = 'pt-BR'; 
-    fala.rate = 1.0;  // Velocidade normal (1.0 = humano, profissional)
-    fala.pitch = 1.0; // Tom de voz normal (sem parecer rádio)
-    
-    // Busca todas as vozes que o celular tem
-    let vozes = window.speechSynthesis.getVoices();
-    if (vozes.length === 0) vozes = vozesDisponiveis;
+// =========================================================================
+// CHAT, IA E MOTOR DE VOZ (O HACK DO GOOGLE TRADUTOR)
+// =========================================================================
 
-    // Caçador de Voz Premium
-    if (vozes.length > 0) {
-        // Pega só as vozes em Português do Brasil
-        const vozesBR = vozes.filter(v => v.lang === 'pt-BR' || v.lang === 'pt_BR');
-        
-        if (vozesBR.length > 0) {
-            // Tenta achar a voz mais profissional possível (Google Cloud ou Apple Premium)
-            const vozProfissional = vozesBR.find(v => 
-                v.name.includes('Google') || 
-                v.name.includes('Premium') || 
-                v.name.includes('Luciana') || // Voz muito boa do iOS
-                v.name.includes('Online')
-            );
-            
-            if (vozProfissional) {
-                fala.voice = vozProfissional;
-            } else {
-                fala.voice = vozesBR[0]; // Pega a primeira do BR se não achar a premium
-            }
-        }
+let kalangoAudioAtual = null;
+
+function falarComVozDoKalango(texto) {
+    // Para o áudio atual se ele estiver falando
+    if (kalangoAudioAtual) {
+        kalangoAudioAtual.pause();
+        kalangoAudioAtual.currentTime = 0;
     }
     
-    window.speechSynthesis.speak(fala);
-}
+    // Limpa o texto (tira **, _, e quebras de linha)
+    let textoLimpo = texto.replace(/<[^>]*>?/gm, '').replace(/[*_]/g, '');
+    
+    // Como a API do tradutor tem limite, cortamos textos muito longos
+    // para ele não dar erro e ficar mudo
+    if (textoLimpo.length > 200) {
+        textoLimpo = textoLimpo.substring(0, 195) + "...";
+    }
 
+    // Usa a URL "secreta" do Google Tradutor (client=tw-ob libera o acesso)
+    const urlVoz = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(textoLimpo)}&tl=pt-BR&client=tw-ob`;
+
+    try {
+        kalangoAudioAtual = new Audio(urlVoz);
+        kalangoAudioAtual.play();
+    } catch (e) {
+        console.error("Erro ao reproduzir voz do Tradutor:", e);
+    }
+}
 async function enviarMensagemGemini() {
     const input = document.getElementById('chat-input');
     const area = document.getElementById('chat-messages');
@@ -638,5 +628,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch(e) {} 
     })(); 
 });
+
 
 
