@@ -1,4 +1,4 @@
-// script.js - v36.0 (Com Motor de Voz Premium do Kalango!)
+// script.js - v39.0 (Com Voz Nativa Premium do Gemini API!)
 
 // ⚠️ VERIFIQUE SE ESTE LINK ABAIXO É O DO SEU APPS SCRIPT
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzs1hlJIptANs_zPYIB4KWgsNmoXsPxp874bOti2jkSt0yCHh4Oj-fQuRMC57ygntNw/exec'; 
@@ -30,51 +30,57 @@ let currentUser = null;
 const USUARIOS_VERIFICADOS = ['Will', 'Admin', 'Kalango', 'WillWeb', 'Suporte'];
 
 // =========================================================================
-// CHAT E INTELIGÊNCIA ARTIFICIAL (VOZ E TEXTO)
+// CHAT, IA E MOTOR DE VOZ NATIVO DO GEMINI (100% GRÁTIS)
 // =========================================================================
 
-// NOVIDADE: O Motor de Voz Premium do Kalango
-let vozesDisponiveis = [];
+let kalangoAudioCtx = null;
+let currentAudioSource = null;
 
-// O navegador demora uns milissegundos para carregar as vozes premium, isso garante que vamos pegá-las
-if ('speechSynthesis' in window) {
-    window.speechSynthesis.onvoiceschanged = () => {
-        vozesDisponiveis = window.speechSynthesis.getVoices();
-    };
-}
-
-// =========================================================================
-// CHAT, IA E MOTOR DE VOZ (O HACK DO GOOGLE TRADUTOR)
-// =========================================================================
-
-let kalangoAudioAtual = null;
-
-function falarComVozDoKalango(texto) {
-    // Para o áudio atual se ele estiver falando
-    if (kalangoAudioAtual) {
-        kalangoAudioAtual.pause();
-        kalangoAudioAtual.currentTime = 0;
+// Função para tocar o áudio cru (PCM) que vem direto do cérebro do Gemini
+async function tocarAudioPCM(base64Data) {
+    if (!kalangoAudioCtx) {
+        kalangoAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
     
-    // Limpa o texto (tira **, _, e quebras de linha)
-    let textoLimpo = texto.replace(/<[^>]*>?/gm, '').replace(/[*_]/g, '');
-    
-    // Como a API do tradutor tem limite, cortamos textos muito longos
-    // para ele não dar erro e ficar mudo
-    if (textoLimpo.length > 200) {
-        textoLimpo = textoLimpo.substring(0, 195) + "...";
+    // Se o contexto estiver suspenso (política de segurança do navegador), retoma
+    if (kalangoAudioCtx.state === 'suspended') {
+        await kalangoAudioCtx.resume();
     }
-
-    // Usa a URL "secreta" do Google Tradutor (client=tw-ob libera o acesso)
-    const urlVoz = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(textoLimpo)}&tl=pt-BR&client=tw-ob`;
+    
+    // Para o áudio atual se estiver tocando
+    if (currentAudioSource) {
+        try { currentAudioSource.stop(); } catch(e) {}
+    }
 
     try {
-        kalangoAudioAtual = new Audio(urlVoz);
-        kalangoAudioAtual.play();
-    } catch (e) {
-        console.error("Erro ao reproduzir voz do Tradutor:", e);
+        // Decodifica o Base64 para binário
+        const binaryString = window.atob(base64Data);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        
+        // Converte de 16-bit PCM (formato do Gemini) para Float32 (formato do Web Audio)
+        const float32Data = new Float32Array(bytes.length / 2);
+        const dataView = new DataView(bytes.buffer);
+        for (let i = 0; i < float32Data.length; i++) {
+            float32Data[i] = dataView.getInt16(i * 2, true) / 32768.0; 
+        }
+        
+        // Cria o buffer e toca (24000 Hz é a taxa padrão da voz do Gemini)
+        const buffer = kalangoAudioCtx.createBuffer(1, float32Data.length, 24000);
+        buffer.getChannelData(0).set(float32Data);
+        
+        currentAudioSource = kalangoAudioCtx.createBufferSource();
+        currentAudioSource.buffer = buffer;
+        currentAudioSource.connect(kalangoAudioCtx.destination);
+        currentAudioSource.start();
+    } catch (error) {
+        console.error("Erro ao reproduzir o áudio do Gemini:", error);
     }
 }
+
 async function enviarMensagemGemini() {
     const input = document.getElementById('chat-input');
     const area = document.getElementById('chat-messages');
@@ -118,8 +124,10 @@ async function enviarMensagemGemini() {
             respostaFinal = respostaFinal.replace(comandoAdd[0], "");
         }
 
-        // 🌟 Manda o Kalango falar a resposta em voz alta!
-        falarComVozDoKalango(respostaFinal);
+        // 🌟 A MÁGICA ACONTECE AQUI: Toca o áudio NATIVO do Gemini se ele vier na resposta!
+        if (data.audioBase64) {
+            tocarAudioPCM(data.audioBase64);
+        }
 
         // Exibe o texto na tela
         const divAI = document.createElement('div');
@@ -157,8 +165,11 @@ function iniciarGravacaoVoz() {
     rec.onstart = () => { 
         btnMic.innerHTML = '<i class="fas fa-microphone text-red-500 fa-beat"></i>'; 
         inputChat.placeholder = "Ouvindo patrão..."; 
-        // Para o Kalango de falar se você for falar algo novo por cima
-        window.speechSynthesis.cancel(); 
+        
+        // Interrompe a voz do Kalango se você for falar de novo por cima
+        if (currentAudioSource) {
+            try { currentAudioSource.stop(); } catch(e) {}
+        }
     };
     
     rec.onresult = (e) => {
@@ -543,91 +554,4 @@ function comprimirImagem(file) {
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height); 
                 resolve(canvas.toDataURL('image/jpeg', 0.6)); 
             }; 
-        }; 
-    }); 
-}
-
-// =========================================================================
-// EVENT LISTENERS DE INICIALIZAÇÃO
-// =========================================================================
-
-document.addEventListener('DOMContentLoaded', () => { 
-    atualizarContadorCarrinho(); 
-    
-    if(document.getElementById('btn-enviar-chat')) {
-        document.getElementById('btn-enviar-chat').addEventListener('click', enviarMensagemGemini); 
-    }
-    
-    const inputChat = document.getElementById('chat-input');
-    if(inputChat) {
-        inputChat.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                enviarMensagemGemini();
-            }
-        });
-    }
-    
-    const btnFoto = document.getElementById('btn-camera-foto'); 
-    const inputFoto = document.getElementById('input-foto-produto'); 
-    const imgPreview = document.getElementById('preview-imagem'); 
-    const urlField = document.getElementById('image-url-field');
-    
-    if(btnFoto && inputFoto) { 
-        btnFoto.addEventListener('click', () => inputFoto.click()); 
-        
-        inputFoto.addEventListener('change', async (e) => { 
-            if(e.target.files && e.target.files[0]) { 
-                const file = e.target.files[0]; 
-                btnFoto.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>'; 
-                try { 
-                    const base64 = await comprimirImagem(file); 
-                    imgPreview.src = base64; 
-                    imgPreview.classList.remove('hidden'); 
-                    btnFoto.classList.add('hidden'); 
-                    urlField.value = base64; 
-                } catch(err) { 
-                    mostrarNotificacao("Erro na foto", "erro"); 
-                    btnFoto.innerHTML = '<i class="fas fa-camera text-slate-400 text-2xl mb-1"></i><span class="text-[9px] text-slate-400 font-bold uppercase">Foto</span>'; 
-                } 
-            } 
-        }); 
-    }
-    
-    const f = document.getElementById('filtro-mercado-catalogo'); 
-    if(f) {
-        f.addEventListener('change', () => { 
-            const v = f.value; 
-            if(v === 'todos') atualizarListaCatalogo(catalogoDados); 
-            else atualizarListaCatalogo(catalogoDados.filter(i => i.mercado === v)); 
-        });
-    }
-    
-    if(document.getElementById('btn-pesquisar')) {
-        document.getElementById('btn-pesquisar').addEventListener('click', pesquisarPrecos); 
-    }
-    
-    if(document.getElementById('price-form')) {
-        document.getElementById('price-form').addEventListener('submit', salvarPreco); 
-    }
-    
-    (async () => { 
-        try { 
-            const res = await fetch(`${APPS_SCRIPT_URL}?acao=buscarMercados`, { redirect: 'follow' }); 
-            const d = await res.json(); 
-            const s = document.getElementById('market'); 
-            
-            if(d.mercados && s) { 
-                s.innerHTML = ''; 
-                d.mercados.forEach(m => { 
-                    const o = document.createElement('option'); 
-                    o.value = m; 
-                    o.textContent = m; 
-                    s.appendChild(o); 
-                }); 
-            } 
-        } catch(e) {} 
-    })(); 
-});
-
-
-
+        };
