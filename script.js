@@ -1,9 +1,7 @@
-// script.js - v40.0 (Com Voz Nativa Gratuita e Login Corrigido para Celular)
+// script.js - v41.0 (Login Inteligente com Tratamento de Erros)
 
-// ⚠️ SEU LINK DO APPS SCRIPT
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzs1hlJIptANs_zPYIB4KWgsNmoXsPxp874bOti2jkSt0yCHh4Oj-fQuRMC57ygntNw/exec'; 
 
-// --- CHAVE DO FIREBASE (LOGIN DO GOOGLE) ---
 const firebaseConfig = {
   apiKey: "AIzaSyCwNVNTZiUJ9qeqniRK9GHDofB9HaQTJ_c",
   authDomain: "kalango-app.firebaseapp.com",
@@ -14,7 +12,6 @@ const firebaseConfig = {
   measurementId: "G-SMR42PSTBS"
 };
 
-// Inicializa o Firebase
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
@@ -30,13 +27,12 @@ let currentUser = null;
 const USUARIOS_VERIFICADOS = ['Will', 'Admin', 'Kalango', 'WillWeb', 'Suporte'];
 
 // =========================================================================
-// CHAT, IA E MOTOR DE VOZ NATIVO DO GEMINI (100% GRÁTIS)
+// CHAT, IA E MOTOR DE VOZ NATIVO DO GEMINI
 // =========================================================================
 
 let kalangoAudioCtx = null;
 let currentAudioSource = null;
 
-// Função para tocar o áudio cru (PCM) que vem direto do cérebro do Gemini
 async function tocarAudioPCM(base64Data) {
     if (!kalangoAudioCtx) {
         kalangoAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -118,7 +114,6 @@ async function enviarMensagemGemini() {
             respostaFinal = respostaFinal.replace(comandoAdd[0], "");
         }
 
-        // 🌟 Toca o áudio NATIVO se ele vier na resposta!
         if (data.audioBase64) {
             tocarAudioPCM(data.audioBase64);
         }
@@ -157,7 +152,7 @@ function iniciarGravacaoVoz() {
     
     rec.onstart = () => { 
         btnMic.innerHTML = '<i class="fas fa-microphone text-red-500 fa-beat"></i>'; 
-        inputChat.placeholder = "Ouvindo patrão..."; 
+        inputChat.placeholder = "A ouvir o patrão..."; 
         if (currentAudioSource) { try { currentAudioSource.stop(); } catch(e) {} }
     };
     
@@ -167,7 +162,7 @@ function iniciarGravacaoVoz() {
         setTimeout(enviarMensagemGemini, 500); 
     };
     
-    rec.onerror = () => { mostrarNotificacao("Não entendi direito.", "erro"); };
+    rec.onerror = () => { mostrarNotificacao("Não percebi bem.", "erro"); };
     
     rec.onend = () => { 
         btnMic.innerHTML = iconOriginal; 
@@ -179,22 +174,32 @@ function iniciarGravacaoVoz() {
 
 
 // =========================================================================
-// SISTEMA DE ABAS E LOGIN (CORRIGIDO PARA CELULAR)
+// SISTEMA DE ABAS E LOGIN (SISTEMA INTELIGENTE)
 // =========================================================================
 
 function fazerLoginGoogle() { 
-    try {
-        const provider = new firebase.auth.GoogleAuthProvider(); 
-        // 🔥 CORREÇÃO: Usar Redirect em vez de Pop-up evita bloqueios em celulares
-        auth.signInWithRedirect(provider); 
-    } catch(e) {
-        alert("Erro ao chamar o Google: " + e.message);
-    }
+    const provider = new firebase.auth.GoogleAuthProvider(); 
+    
+    // Tenta primeiro abrir a janelinha normal (Popup)
+    auth.signInWithPopup(provider).catch((error) => {
+        if (error.code === 'auth/unauthorized-domain') {
+            alert("⚠️ ALERTA: O domínio deste site não está autorizado no Firebase! Vai ao Firebase > Authentication > Settings > Authorized domains e adiciona o link do teu site do GitHub.");
+        } else if (error.code === 'auth/popup-blocked') {
+            // Se o telemóvel bloquear a janelinha, muda para redirecionamento
+            auth.signInWithRedirect(provider);
+        } else {
+            alert("Erro no login: " + error.message);
+        }
+    }); 
 }
 
-// Captura erros se o redirecionamento falhar
+// Captura erros do redirecionamento (se tiver ido por aí)
 auth.getRedirectResult().catch((error) => {
-    alert("Erro na volta do login: " + error.message);
+    if (error.code === 'auth/unauthorized-domain') {
+        alert("⚠️ ALERTA: O domínio deste site não está autorizado no Firebase! Vai ao Firebase > Authentication > Settings > Authorized domains e adiciona o link do teu site do GitHub.");
+    } else {
+        alert("Erro no regresso do login: " + error.message);
+    }
 });
 
 auth.onAuthStateChanged((user) => { 
@@ -310,7 +315,7 @@ async function onScanSuccess(t) {
         document.getElementById('registrar-home').classList.add('hidden'); document.getElementById('price-form-section').classList.remove('hidden'); 
         const container = document.getElementById('registrar-container');
         container.classList.remove('h-full', 'justify-center'); container.classList.add('pb-12');
-        document.getElementById('ean-field').value = t; document.getElementById('product-name').value = "Buscando..."; 
+        document.getElementById('ean-field').value = t; document.getElementById('product-name').value = "A procurar..."; 
         try { 
             const res = await fetch(`${APPS_SCRIPT_URL}?ean=${t}`, { redirect: 'follow' }); const data = await res.json(); 
             document.getElementById('product-name').value = data.nome || ""; 
