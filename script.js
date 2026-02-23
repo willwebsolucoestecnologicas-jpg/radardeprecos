@@ -1,7 +1,9 @@
-// script.js - v41.0 (Login Inteligente com Tratamento de Erros)
+// script.js - v42.0 (Login Celular + Hack de Voz do Tradutor 100% Grátis)
 
+// ⚠️ SEU LINK DO APPS SCRIPT
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzs1hlJIptANs_zPYIB4KWgsNmoXsPxp874bOti2jkSt0yCHh4Oj-fQuRMC57ygntNw/exec'; 
 
+// --- CHAVE DO FIREBASE (LOGIN DO GOOGLE) ---
 const firebaseConfig = {
   apiKey: "AIzaSyCwNVNTZiUJ9qeqniRK9GHDofB9HaQTJ_c",
   authDomain: "kalango-app.firebaseapp.com",
@@ -12,6 +14,7 @@ const firebaseConfig = {
   measurementId: "G-SMR42PSTBS"
 };
 
+// Inicializa o Firebase
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
@@ -27,48 +30,34 @@ let currentUser = null;
 const USUARIOS_VERIFICADOS = ['Will', 'Admin', 'Kalango', 'WillWeb', 'Suporte'];
 
 // =========================================================================
-// CHAT, IA E MOTOR DE VOZ NATIVO DO GEMINI
+// CHAT, IA E MOTOR DE VOZ (HACK DO GOOGLE TRADUTOR - 100% GRÁTIS)
 // =========================================================================
 
-let kalangoAudioCtx = null;
-let currentAudioSource = null;
+let kalangoAudioAtual = null;
 
-async function tocarAudioPCM(base64Data) {
-    if (!kalangoAudioCtx) {
-        kalangoAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function falarComVozDoKalango(texto) {
+    // Para o áudio atual se ele estiver falando
+    if (kalangoAudioAtual) {
+        kalangoAudioAtual.pause();
+        kalangoAudioAtual.currentTime = 0;
     }
     
-    if (kalangoAudioCtx.state === 'suspended') {
-        await kalangoAudioCtx.resume();
-    }
+    // Limpa o texto (tira **, _, e quebras de linha) para o robô ler limpo
+    let textoLimpo = texto.replace(/<[^>]*>?/gm, '').replace(/[*_]/g, '');
     
-    if (currentAudioSource) {
-        try { currentAudioSource.stop(); } catch(e) {}
+    // Como a API do tradutor tem limite, cortamos textos muito longos
+    if (textoLimpo.length > 200) {
+        textoLimpo = textoLimpo.substring(0, 195) + "...";
     }
+
+    // Usa a URL "secreta" do Google Tradutor (client=tw-ob libera o acesso grátis)
+    const urlVoz = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(textoLimpo)}&tl=pt-BR&client=tw-ob`;
 
     try {
-        const binaryString = window.atob(base64Data);
-        const len = binaryString.length;
-        const bytes = new Uint8Array(len);
-        for (let i = 0; i < len; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-        }
-        
-        const float32Data = new Float32Array(bytes.length / 2);
-        const dataView = new DataView(bytes.buffer);
-        for (let i = 0; i < float32Data.length; i++) {
-            float32Data[i] = dataView.getInt16(i * 2, true) / 32768.0; 
-        }
-        
-        const buffer = kalangoAudioCtx.createBuffer(1, float32Data.length, 24000);
-        buffer.getChannelData(0).set(float32Data);
-        
-        currentAudioSource = kalangoAudioCtx.createBufferSource();
-        currentAudioSource.buffer = buffer;
-        currentAudioSource.connect(kalangoAudioCtx.destination);
-        currentAudioSource.start();
-    } catch (error) {
-        console.error("Erro ao reproduzir o áudio do Gemini:", error);
+        kalangoAudioAtual = new Audio(urlVoz);
+        kalangoAudioAtual.play();
+    } catch (e) {
+        console.error("Erro ao reproduzir voz do Tradutor:", e);
     }
 }
 
@@ -103,6 +92,7 @@ async function enviarMensagemGemini() {
         
         let respostaFinal = data.resposta || "Sem resposta.";
 
+        // Lê comandos de carrinho invisíveis
         const comandoAdd = respostaFinal.match(/\|\|ADD:(.*?)\|\|/);
         if (comandoAdd && comandoAdd[1]) {
             const partes = comandoAdd[1].split('::');
@@ -114,10 +104,10 @@ async function enviarMensagemGemini() {
             respostaFinal = respostaFinal.replace(comandoAdd[0], "");
         }
 
-        if (data.audioBase64) {
-            tocarAudioPCM(data.audioBase64);
-        }
+        // 🌟 Chama a voz do Kalango!
+        falarComVozDoKalango(respostaFinal);
 
+        // Exibe o texto formatado na tela
         const divAI = document.createElement('div');
         divAI.className = 'chat-ai text-sm mb-2';
         divAI.innerHTML = respostaFinal.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
@@ -152,8 +142,11 @@ function iniciarGravacaoVoz() {
     
     rec.onstart = () => { 
         btnMic.innerHTML = '<i class="fas fa-microphone text-red-500 fa-beat"></i>'; 
-        inputChat.placeholder = "A ouvir o patrão..."; 
-        if (currentAudioSource) { try { currentAudioSource.stop(); } catch(e) {} }
+        inputChat.placeholder = "Ouvindo patrão..."; 
+        // Interrompe a voz do Kalango se você for falar de novo por cima
+        if (kalangoAudioAtual) {
+            kalangoAudioAtual.pause();
+        }
     };
     
     rec.onresult = (e) => {
@@ -162,7 +155,7 @@ function iniciarGravacaoVoz() {
         setTimeout(enviarMensagemGemini, 500); 
     };
     
-    rec.onerror = () => { mostrarNotificacao("Não percebi bem.", "erro"); };
+    rec.onerror = () => { mostrarNotificacao("Não entendi direito.", "erro"); };
     
     rec.onend = () => { 
         btnMic.innerHTML = iconOriginal; 
@@ -174,31 +167,24 @@ function iniciarGravacaoVoz() {
 
 
 // =========================================================================
-// SISTEMA DE ABAS E LOGIN (SISTEMA INTELIGENTE)
+// SISTEMA DE ABAS E LOGIN (REDIRECIONAMENTO SEGURO PARA CELULAR)
 // =========================================================================
 
 function fazerLoginGoogle() { 
-    const provider = new firebase.auth.GoogleAuthProvider(); 
-    
-    // Tenta primeiro abrir a janelinha normal (Popup)
-    auth.signInWithPopup(provider).catch((error) => {
-        if (error.code === 'auth/unauthorized-domain') {
-            alert("⚠️ ALERTA: O domínio deste site não está autorizado no Firebase! Vai ao Firebase > Authentication > Settings > Authorized domains e adiciona o link do teu site do GitHub.");
-        } else if (error.code === 'auth/popup-blocked') {
-            // Se o telemóvel bloquear a janelinha, muda para redirecionamento
-            auth.signInWithRedirect(provider);
-        } else {
-            alert("Erro no login: " + error.message);
-        }
-    }); 
+    try {
+        const provider = new firebase.auth.GoogleAuthProvider(); 
+        auth.signInWithRedirect(provider); 
+    } catch(e) {
+        alert("Erro ao chamar o Google: " + e.message);
+    }
 }
 
-// Captura erros do redirecionamento (se tiver ido por aí)
+// Captura erros se o redirecionamento falhar
 auth.getRedirectResult().catch((error) => {
     if (error.code === 'auth/unauthorized-domain') {
-        alert("⚠️ ALERTA: O domínio deste site não está autorizado no Firebase! Vai ao Firebase > Authentication > Settings > Authorized domains e adiciona o link do teu site do GitHub.");
+        alert("⚠️ ALERTA: O domínio deste site não está autorizado no Firebase! Vá ao Firebase > Authentication > Settings > Authorized domains e adicione o link do seu site.");
     } else {
-        alert("Erro no regresso do login: " + error.message);
+        alert("Erro na volta do login: " + error.message);
     }
 });
 
@@ -315,7 +301,7 @@ async function onScanSuccess(t) {
         document.getElementById('registrar-home').classList.add('hidden'); document.getElementById('price-form-section').classList.remove('hidden'); 
         const container = document.getElementById('registrar-container');
         container.classList.remove('h-full', 'justify-center'); container.classList.add('pb-12');
-        document.getElementById('ean-field').value = t; document.getElementById('product-name').value = "A procurar..."; 
+        document.getElementById('ean-field').value = t; document.getElementById('product-name').value = "Buscando..."; 
         try { 
             const res = await fetch(`${APPS_SCRIPT_URL}?ean=${t}`, { redirect: 'follow' }); const data = await res.json(); 
             document.getElementById('product-name').value = data.nome || ""; 
