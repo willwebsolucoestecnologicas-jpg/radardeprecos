@@ -1,4 +1,4 @@
-// script.js - v43.0 (Com Memória, Nome e Correção Visual do Chat)
+// script.js - v44.0 (Correção Definitiva do Login + Memória e Nome)
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzs1hlJIptANs_zPYIB4KWgsNmoXsPxp874bOti2jkSt0yCHh4Oj-fQuRMC57ygntNw/exec'; 
 
@@ -24,7 +24,7 @@ let carrinho = JSON.parse(localStorage.getItem('kalango_cart')) || [];
 let modoScanAtual = 'registrar';
 let currentUser = null; 
 
-// 🔥 VARIÁVEL DE MEMÓRIA DO CHAT
+// VARIÁVEL DE MEMÓRIA DO CHAT
 let historicoChat = []; 
 
 const USUARIOS_VERIFICADOS = ['Will', 'Admin', 'Kalango', 'WillWeb', 'Suporte'];
@@ -54,17 +54,17 @@ function falarComVozDoKalango(texto) {
     }
 }
 
-// 🔥 CORREÇÃO VISUAL DA ROLAGEM
+// CORREÇÃO VISUAL DA ROLAGEM
 function rolarChatParaFim() {
     const area = document.getElementById('chat-messages');
     let spacer = document.getElementById('chat-spacer');
     if (!spacer) {
         spacer = document.createElement('div');
         spacer.id = 'chat-spacer';
-        spacer.className = 'h-32 w-full shrink-0'; // Cria um espaço vazio gigante no final
+        spacer.className = 'h-32 w-full shrink-0'; 
     }
-    area.appendChild(spacer); // Coloca o espaço sempre por último
-    area.scrollTop = area.scrollHeight; // Rola até o fundo
+    area.appendChild(spacer); 
+    area.scrollTop = area.scrollHeight; 
 }
 
 async function enviarMensagemGemini() {
@@ -93,12 +93,11 @@ async function enviarMensagemGemini() {
     area.appendChild(divLoad);
     rolarChatParaFim();
 
-    // 🔥 PREPARA O HISTÓRICO (Pega só as últimas 4 mensagens para não sobrecarregar)
+    // PREPARA O HISTÓRICO 
     const historyString = historicoChat.slice(-4).join("\n");
     historicoChat.push("Usuário: " + txt);
 
     try {
-        // Envia Pergunta + Nome + Histórico
         const fetchUrl = `${APPS_SCRIPT_URL}?acao=chatGemini&pergunta=${encodeURIComponent(txt)}&nome=${encodeURIComponent(userName)}&historico=${encodeURIComponent(historyString)}`;
         const res = await fetch(fetchUrl, { redirect: 'follow' });
         const data = await res.json();
@@ -106,7 +105,6 @@ async function enviarMensagemGemini() {
         document.getElementById(id).remove();
         let respostaFinal = data.resposta || "Sem resposta.";
 
-        // Salva a resposta na memória
         historicoChat.push("Kalango: " + respostaFinal.replace(/\|\|ADD:(.*?)\|\|/g, ""));
 
         const comandoAdd = respostaFinal.match(/\|\|ADD:(.*?)\|\|/);
@@ -180,23 +178,30 @@ function iniciarGravacaoVoz() {
 
 
 // =========================================================================
-// SISTEMA DE ABAS E LOGIN
+// SISTEMA DE ABAS E LOGIN (CORRIGIDO PARA QUEBRAR O LOOP)
 // =========================================================================
 
 function fazerLoginGoogle() { 
-    try {
-        const provider = new firebase.auth.GoogleAuthProvider(); 
-        auth.signInWithRedirect(provider); 
-    } catch(e) {
-        alert("Erro ao chamar o Google: " + e.message);
-    }
+    const provider = new firebase.auth.GoogleAuthProvider(); 
+    // 🔥 ISSO AQUI QUEBRA O LOOP DE CACHE: Força o Google a perguntar qual conta usar
+    provider.setCustomParameters({ prompt: 'select_account' });
+    
+    // Tenta primeiro abrir a janelinha normal (Popup) que funcionou na v41
+    auth.signInWithPopup(provider).catch((error) => {
+        if (error.code === 'auth/unauthorized-domain') {
+            alert("⚠️ ALERTA: O domínio deste site não está autorizado no Firebase! Vá ao Firebase > Authentication > Settings > Authorized domains e adicione o link do seu site.");
+        } else if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
+            // Se o navegador bloquear o popup, aí sim ele tenta o redirecionamento
+            auth.signInWithRedirect(provider);
+        } else {
+            console.error("Erro no login: ", error);
+        }
+    }); 
 }
 
 auth.getRedirectResult().catch((error) => {
     if (error.code === 'auth/unauthorized-domain') {
-        alert("⚠️ ALERTA: O domínio deste site não está autorizado no Firebase! Vá ao Firebase > Authentication > Settings > Authorized domains e adicione o link do seu site.");
-    } else {
-        alert("Erro na volta do login: " + error.message);
+        alert("⚠️ ALERTA: O domínio deste site não está autorizado no Firebase!");
     }
 });
 
