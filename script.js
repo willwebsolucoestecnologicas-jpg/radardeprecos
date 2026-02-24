@@ -1,4 +1,4 @@
-// script.js - v46.0 (Com Envio de Histórico/Memória)
+// script.js - v47.0 (Sincronizado com Memória e Nome)
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzs1hlJIptANs_zPYIB4KWgsNmoXsPxp874bOti2jkSt0yCHh4Oj-fQuRMC57ygntNw/exec'; 
 
@@ -24,7 +24,7 @@ let carrinho = JSON.parse(localStorage.getItem('kalango_cart')) || [];
 let modoScanAtual = 'registrar';
 let currentUser = null; 
 
-// 🔥 VARIÁVEL DE MEMÓRIA (O que faz ele lembrar do Feijão!)
+// 🔥 AQUI ESTÁ A MEMÓRIA DO KALANGO!
 let historicoChat = []; 
 
 const USUARIOS_VERIFICADOS = ['Will', 'Admin', 'Kalango', 'WillWeb', 'Suporte'];
@@ -74,7 +74,7 @@ async function enviarMensagemGemini() {
     
     if (!txt) return;
 
-    // Obtém o nome real da pessoa logada
+    // 🔥 PEGA O SEU NOME!
     const userName = currentUser ? currentUser.displayName.split(' ')[0] : "Amigo(a)";
 
     const divUser = document.createElement('div');
@@ -93,11 +93,12 @@ async function enviarMensagemGemini() {
     area.appendChild(divLoad);
     rolarChatParaFim();
 
-    // 🔥 PREPARA O HISTÓRICO (Junta as últimas mensagens para enviar ao backend)
+    // 🔥 PREPARA O HISTÓRICO E GUARDA A SUA PERGUNTA
     const historyString = historicoChat.slice(-4).join("\n");
     historicoChat.push("Usuário: " + txt);
 
     try {
+        // 🔥 ENVIA PERGUNTA + NOME + HISTÓRICO PARA O SEU CODE.GS
         const fetchUrl = `${APPS_SCRIPT_URL}?acao=chatGemini&pergunta=${encodeURIComponent(txt)}&nome=${encodeURIComponent(userName)}&historico=${encodeURIComponent(historyString)}`;
         const res = await fetch(fetchUrl, { redirect: 'follow' });
         const data = await res.json();
@@ -105,7 +106,7 @@ async function enviarMensagemGemini() {
         document.getElementById(id).remove();
         let respostaFinal = data.resposta || "Sem resposta.";
 
-        // Salva a resposta do bot na memória também
+        // 🔥 SALVA A RESPOSTA DO KALANGO NA MEMÓRIA PARA ELE LEMBRAR DEPOIS
         historicoChat.push("Kalango: " + respostaFinal.replace(/\|\|ADD:(.*?)\|\|/g, ""));
 
         const comandoAdd = respostaFinal.match(/\|\|ADD:(.*?)\|\|/);
@@ -155,7 +156,7 @@ function iniciarGravacaoVoz() {
     
     rec.onstart = () => { 
         btnMic.innerHTML = '<i class="fas fa-microphone text-red-500 fa-beat"></i>'; 
-        inputChat.placeholder = "Ouvindo patrão..."; 
+        inputChat.placeholder = "Ouvindo..."; 
         if (kalangoAudioAtual) {
             kalangoAudioAtual.pause();
         }
