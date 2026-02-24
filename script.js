@@ -1,4 +1,4 @@
-// script.js - v47.0 (Sincronizado com Memória e Nome)
+// script.js - v48.0 (Memória Permanente e Sincronização de Nome)
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzs1hlJIptANs_zPYIB4KWgsNmoXsPxp874bOti2jkSt0yCHh4Oj-fQuRMC57ygntNw/exec'; 
 
@@ -24,13 +24,13 @@ let carrinho = JSON.parse(localStorage.getItem('kalango_cart')) || [];
 let modoScanAtual = 'registrar';
 let currentUser = null; 
 
-// 🔥 AQUI ESTÁ A MEMÓRIA DO KALANGO!
-let historicoChat = []; 
+// 🔥 MEMÓRIA PERMANENTE: Salva no celular para não esquecer se a página recarregar!
+let historicoChat = JSON.parse(localStorage.getItem('kalango_chat_history')) || []; 
 
 const USUARIOS_VERIFICADOS = ['Will', 'Admin', 'Kalango', 'WillWeb', 'Suporte'];
 
 // =========================================================================
-// CHAT, IA E MOTOR DE VOZ (HACK DO GOOGLE TRADUTOR)
+// CHAT, IA E MOTOR DE VOZ
 // =========================================================================
 
 let kalangoAudioAtual = null;
@@ -40,21 +40,17 @@ function falarComVozDoKalango(texto) {
         kalangoAudioAtual.pause();
         kalangoAudioAtual.currentTime = 0;
     }
-    
     let textoLimpo = texto.replace(/<[^>]*>?/gm, '').replace(/[*_]/g, '');
     if (textoLimpo.length > 200) { textoLimpo = textoLimpo.substring(0, 195) + "..."; }
-
     const urlVoz = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(textoLimpo)}&tl=pt-BR&client=tw-ob`;
-
     try {
         kalangoAudioAtual = new Audio(urlVoz);
         kalangoAudioAtual.play();
     } catch (e) {
-        console.error("Erro ao reproduzir voz do Tradutor:", e);
+        console.error("Erro ao reproduzir voz:", e);
     }
 }
 
-// CORREÇÃO VISUAL DA ROLAGEM
 function rolarChatParaFim() {
     const area = document.getElementById('chat-messages');
     let spacer = document.getElementById('chat-spacer');
@@ -74,7 +70,7 @@ async function enviarMensagemGemini() {
     
     if (!txt) return;
 
-    // 🔥 PEGA O SEU NOME!
+    // Pega o seu nome
     const userName = currentUser ? currentUser.displayName.split(' ')[0] : "Amigo(a)";
 
     const divUser = document.createElement('div');
@@ -93,12 +89,12 @@ async function enviarMensagemGemini() {
     area.appendChild(divLoad);
     rolarChatParaFim();
 
-    // 🔥 PREPARA O HISTÓRICO E GUARDA A SUA PERGUNTA
-    const historyString = historicoChat.slice(-4).join("\n");
-    historicoChat.push("Usuário: " + txt);
+    // 🔥 PREPARA O HISTÓRICO (Lembrando as últimas 6 mensagens)
+    const historyString = historicoChat.slice(-6).join("\n");
+    historicoChat.push(userName + ": " + txt);
+    localStorage.setItem('kalango_chat_history', JSON.stringify(historicoChat)); // Salva a pergunta no celular
 
     try {
-        // 🔥 ENVIA PERGUNTA + NOME + HISTÓRICO PARA O SEU CODE.GS
         const fetchUrl = `${APPS_SCRIPT_URL}?acao=chatGemini&pergunta=${encodeURIComponent(txt)}&nome=${encodeURIComponent(userName)}&historico=${encodeURIComponent(historyString)}`;
         const res = await fetch(fetchUrl, { redirect: 'follow' });
         const data = await res.json();
@@ -106,8 +102,9 @@ async function enviarMensagemGemini() {
         document.getElementById(id).remove();
         let respostaFinal = data.resposta || "Sem resposta.";
 
-        // 🔥 SALVA A RESPOSTA DO KALANGO NA MEMÓRIA PARA ELE LEMBRAR DEPOIS
+        // 🔥 SALVA A RESPOSTA NO CELULAR TAMBÉM
         historicoChat.push("Kalango: " + respostaFinal.replace(/\|\|ADD:(.*?)\|\|/g, ""));
+        localStorage.setItem('kalango_chat_history', JSON.stringify(historicoChat));
 
         const comandoAdd = respostaFinal.match(/\|\|ADD:(.*?)\|\|/);
         if (comandoAdd && comandoAdd[1]) {
@@ -143,10 +140,8 @@ function iniciarGravacaoVoz() {
         mostrarNotificacao("Seu navegador não suporta gravação de voz.", "erro"); 
         return; 
     }
-    
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const rec = new SpeechRecognition();
-    
     rec.lang = 'pt-BR';
     rec.interimResults = false;
     
@@ -157,30 +152,22 @@ function iniciarGravacaoVoz() {
     rec.onstart = () => { 
         btnMic.innerHTML = '<i class="fas fa-microphone text-red-500 fa-beat"></i>'; 
         inputChat.placeholder = "Ouvindo..."; 
-        if (kalangoAudioAtual) {
-            kalangoAudioAtual.pause();
-        }
+        if (kalangoAudioAtual) { kalangoAudioAtual.pause(); }
     };
     
     rec.onresult = (e) => {
-        const textoFalado = e.results[0][0].transcript;
-        inputChat.value = textoFalado;
+        inputChat.value = e.results[0][0].transcript;
         setTimeout(enviarMensagemGemini, 500); 
     };
     
     rec.onerror = () => { mostrarNotificacao("Não entendi direito.", "erro"); };
-    
-    rec.onend = () => { 
-        btnMic.innerHTML = iconOriginal; 
-        inputChat.placeholder = "Digite ou mande áudio..."; 
-    };
-    
+    rec.onend = () => { btnMic.innerHTML = iconOriginal; inputChat.placeholder = "Digite ou mande áudio..."; };
     rec.start();
 }
 
 
 // =========================================================================
-// SISTEMA DE ABAS E LOGIN
+// LOGIN SEGURO E OUTRAS FUNÇÕES
 // =========================================================================
 
 function fazerLoginGoogle() { 
@@ -189,7 +176,7 @@ function fazerLoginGoogle() {
     
     auth.signInWithPopup(provider).catch((error) => {
         if (error.code === 'auth/unauthorized-domain') {
-            alert("⚠️ ALERTA: O domínio deste site não está autorizado no Firebase! Vá ao Firebase > Authentication > Settings > Authorized domains e adicione o link do seu site.");
+            alert("⚠️ ALERTA: Domínio não autorizado no Firebase!");
         } else if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
             auth.signInWithRedirect(provider);
         } else {
@@ -240,11 +227,6 @@ auth.onAuthStateChanged((user) => {
     } 
 });
 
-
-// =========================================================================
-// GESTÃO DO CARRINHO DE COMPRAS E DEMAIS FUNÇÕES
-// =========================================================================
-
 function adicionarAoCarrinho(produto, preco, mercado) {
     const id = produto + mercado; 
     const existente = carrinho.find(i => i.id === id);
@@ -261,7 +243,18 @@ function toggleCarrinho() {
 }
 function atualizarContadorCarrinho() { const c = carrinho.reduce((a, b) => a + b.qtd, 0); const b = document.getElementById('cart-count'); if(b) { b.textContent = c; b.classList.toggle('hidden', c === 0); } }
 function alterarQtd(id, d) { const i = carrinho.find(x => x.id === id); if (i) { i.qtd += d; if (i.qtd <= 0) carrinho = carrinho.filter(x => x.id !== id); } salvarCarrinho(); renderizarCarrinho(); }
-function limparCarrinho() { if(confirm("Limpar lista?")) { carrinho = []; salvarCarrinho(); renderizarCarrinho(); toggleCarrinho(); } }
+
+// Se você precisar limpar o histórico da IA para começar um assunto novo
+function limparCarrinho() { 
+    if(confirm("Limpar carrinho e resetar papo do Kalango?")) { 
+        carrinho = []; 
+        salvarCarrinho(); 
+        renderizarCarrinho(); 
+        toggleCarrinho(); 
+        historicoChat = []; // Zera a memória também para testar do zero
+        localStorage.removeItem('kalango_chat_history');
+    } 
+}
 function salvarCarrinho() { localStorage.setItem('kalango_cart', JSON.stringify(carrinho)); atualizarContadorCarrinho(); }
 function renderizarCarrinho() { 
     const c = document.getElementById('cart-items'); const t = document.getElementById('cart-total-price'); const q = document.getElementById('cart-total-items'); 
@@ -273,7 +266,7 @@ function renderizarCarrinho() {
     }); 
     t.textContent = `R$ ${total.toFixed(2)}`; q.textContent = `${qtd}`; 
 }
-function abrirModalLimpeza() { if(confirm("Limpar?")) { carrinho=[]; salvarCarrinho(); renderizarCarrinho(); toggleCarrinho(); } }
+function abrirModalLimpeza() { if(confirm("Limpar?")) { limparCarrinho(); } }
 
 async function trocarAba(aba) { 
     const abas = ['registrar', 'consultar', 'catalogo', 'chat']; if (scannerIsRunning) fecharCamera(); 
