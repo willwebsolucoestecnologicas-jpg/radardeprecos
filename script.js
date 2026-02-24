@@ -1,4 +1,4 @@
-// script.js - v44.0 (Correção Definitiva do Login + Memória e Nome)
+// script.js - v46.0 (Com Envio de Histórico/Memória)
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzs1hlJIptANs_zPYIB4KWgsNmoXsPxp874bOti2jkSt0yCHh4Oj-fQuRMC57ygntNw/exec'; 
 
@@ -24,7 +24,7 @@ let carrinho = JSON.parse(localStorage.getItem('kalango_cart')) || [];
 let modoScanAtual = 'registrar';
 let currentUser = null; 
 
-// VARIÁVEL DE MEMÓRIA DO CHAT
+// 🔥 VARIÁVEL DE MEMÓRIA (O que faz ele lembrar do Feijão!)
 let historicoChat = []; 
 
 const USUARIOS_VERIFICADOS = ['Will', 'Admin', 'Kalango', 'WillWeb', 'Suporte'];
@@ -93,7 +93,7 @@ async function enviarMensagemGemini() {
     area.appendChild(divLoad);
     rolarChatParaFim();
 
-    // PREPARA O HISTÓRICO 
+    // 🔥 PREPARA O HISTÓRICO (Junta as últimas mensagens para enviar ao backend)
     const historyString = historicoChat.slice(-4).join("\n");
     historicoChat.push("Usuário: " + txt);
 
@@ -105,6 +105,7 @@ async function enviarMensagemGemini() {
         document.getElementById(id).remove();
         let respostaFinal = data.resposta || "Sem resposta.";
 
+        // Salva a resposta do bot na memória também
         historicoChat.push("Kalango: " + respostaFinal.replace(/\|\|ADD:(.*?)\|\|/g, ""));
 
         const comandoAdd = respostaFinal.match(/\|\|ADD:(.*?)\|\|/);
@@ -178,20 +179,17 @@ function iniciarGravacaoVoz() {
 
 
 // =========================================================================
-// SISTEMA DE ABAS E LOGIN (CORRIGIDO PARA QUEBRAR O LOOP)
+// SISTEMA DE ABAS E LOGIN
 // =========================================================================
 
 function fazerLoginGoogle() { 
     const provider = new firebase.auth.GoogleAuthProvider(); 
-    // 🔥 ISSO AQUI QUEBRA O LOOP DE CACHE: Força o Google a perguntar qual conta usar
     provider.setCustomParameters({ prompt: 'select_account' });
     
-    // Tenta primeiro abrir a janelinha normal (Popup) que funcionou na v41
     auth.signInWithPopup(provider).catch((error) => {
         if (error.code === 'auth/unauthorized-domain') {
             alert("⚠️ ALERTA: O domínio deste site não está autorizado no Firebase! Vá ao Firebase > Authentication > Settings > Authorized domains e adicione o link do seu site.");
         } else if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
-            // Se o navegador bloquear o popup, aí sim ele tenta o redirecionamento
             auth.signInWithRedirect(provider);
         } else {
             console.error("Erro no login: ", error);
