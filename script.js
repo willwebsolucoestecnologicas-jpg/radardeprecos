@@ -35,8 +35,28 @@ const USUARIOS_VERIFICADOS = ['Will', 'Admin', 'Kalango', 'WillWeb', 'Suporte'];
 
 let kalangoAudioAtual = null;
 
-async function falarComVozDoKalango(texto) {
-    // Truque para o GitHub não bloquear a chave:
+let modoVozAtivo = false;
+
+function abrirModoVoz() {
+    modoVozAtivo = true;
+    const overlay = document.getElementById('voice-mode-overlay');
+    overlay.classList.remove('hidden');
+    overlay.classList.add('flex');
+    iniciarGravacaoVoz(); // Já entra escutando!
+}
+
+function fecharModoVoz() {
+    modoVozAtivo = false;
+    const overlay = document.getElementById('voice-mode-overlay');
+    overlay.classList.add('hidden');
+    overlay.classList.remove('flex');
+    if (kalangoAudioAtual) {
+        kalangoAudioAtual.pause();
+        kalangoAudioAtual.currentTime = 0;
+    }
+}
+
+async function falarComVozDoKalango(texto, isModoVoz = false) {
     const P1 = "w8U2w2dwLljaTDN0Dt9AIHiGt8";
     const P2 = "olZ4YTYqUJR10T79iTRHZjHCWLJQQJ99CEACYeBjFXJ3w3AAAYACOGrJEO";
     const CHAVE_AZURE = P1 + P2; 
@@ -47,53 +67,40 @@ async function falarComVozDoKalango(texto) {
         kalangoAudioAtual.currentTime = 0;
     }
     
-    // Limpa HTML, asteriscos, troca reticências por vírgulas e suaviza exclamações
-    let textoLimpo = texto.replace(/<[^>]*>?/gm, '')
-                          .replace(/[*_]/g, '')
-                          .replace(/\.\.\./g, ', ')
-                          .replace(/!/g, '. ')
-                          .replace(/hummm/gi, '');
+    let textoLimpo = texto.replace(/<[^>]*>?/gm, '').replace(/[*_]/g, '');
     
-    // Configuração da voz neural nordestina (Antônio)
-    const ssml = `<speak version='1.0' xml:lang='pt-BR'>
-                    <voice xml:lang='pt-BR' xml:gender='Male' name='pt-BR-AntonioNeural'>
-                        <prosody rate="1.25" pitch="+6%">
-                            ${textoLimpo}
-                        </prosody>
-                    </voice>
-                  </speak>`;
-
+    const ssml = `<speak version='1.0' xml:lang='pt-BR'><voice xml:lang='pt-BR' xml:gender='Male' name='pt-BR-AntonioNeural'><prosody rate="1.05" pitch="0%">${textoLimpo}</prosody></voice></speak>`;
     const url = `https://${REGIAO_AZURE}.tts.speech.microsoft.com/cognitiveservices/v1`;
 
     try {
         const response = await fetch(url, {
             method: 'POST',
-            headers: {
-                'Ocp-Apim-Subscription-Key': CHAVE_AZURE,
-                'Content-Type': 'application/ssml+xml',
-                'X-Microsoft-OutputFormat': 'audio-16khz-128kbitrate-mono-mp3',
-                'User-Agent': 'KalangoApp'
-            },
+            headers: { 'Ocp-Apim-Subscription-Key': CHAVE_AZURE, 'Content-Type': 'application/ssml+xml', 'X-Microsoft-OutputFormat': 'audio-16khz-128kbitrate-mono-mp3' },
             body: ssml
         });
 
-        if (!response.ok) throw new Error("Erro na API da Microsoft");
-
         const blob = await response.blob();
-        const urlAudio = URL.createObjectURL(blob);
+        kalangoAudioAtual = new Audio(URL.createObjectURL(blob));
         
-        kalangoAudioAtual = new Audio(urlAudio);
+        // 🚨 MÁGICA DA ANIMAÇÃO AQUI
+        if (isModoVoz) {
+            const espectro = document.getElementById('spectrogram');
+            const statusText = document.getElementById('voice-status');
+            
+            kalangoAudioAtual.onplay = () => { espectro.classList.add('espectro-ativo'); };
+            kalangoAudioAtual.onended = () => { 
+                espectro.classList.remove('espectro-ativo'); 
+                statusText.textContent = "Toque para Falar"; 
+            };
+        }
         kalangoAudioAtual.play();
 
     } catch (e) {
-        console.error("Erro ao gerar voz neural:", e);
-        // Sistema de segurança: se a Microsoft falhar, ele usa o Tradutor para não ficar mudo
-        const fallbackUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(textoLimpo)}&tl=pt-BR&client=tw-ob`;
-        kalangoAudioAtual = new Audio(fallbackUrl);
+        const fallback = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(textoLimpo)}&tl=pt-BR&client=tw-ob`;
+        kalangoAudioAtual = new Audio(fallback);
         kalangoAudioAtual.play();
     }
 }
-
 function rolarChatParaFim() {
     const area = document.getElementById('chat-messages');
     let spacer = document.getElementById('chat-spacer');
@@ -179,35 +186,73 @@ async function enviarMensagemGemini() {
 }
 
 function iniciarGravacaoVoz() {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) { 
-        mostrarNotificacao("Seu navegador não suporta gravação de voz.", "erro"); 
-        return; 
-    }
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const rec = new SpeechRecognition();
-    rec.lang = 'pt-BR';
-    rec.interimResults = false;
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) return mostrarNotificacao("Navegador não suporta voz.", "erro");
     
-    const btnMic = document.getElementById('btn-mic-chat');
-    const inputChat = document.getElementById('chat-input');
-    const iconOriginal = btnMic.innerHTML;
+    const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    rec.lang = 'pt-BR'; rec.interimResults = false;
+    
+    const statusText = document.getElementById('voice-status');
+    const btnCentral = document.getElementById('btn-central-mic');
     
     rec.onstart = () => { 
-        btnMic.innerHTML = '<i class="fas fa-microphone text-red-500 fa-beat"></i>'; 
-        inputChat.placeholder = "Ouvindo..."; 
-        if (kalangoAudioAtual) { kalangoAudioAtual.pause(); }
+        if (kalangoAudioAtual) kalangoAudioAtual.pause();
+        if(modoVozAtivo) {
+            statusText.textContent = "Ouvindo...";
+            btnCentral.classList.add('mic-pulsing');
+            document.getElementById('spectrogram').classList.remove('espectro-ativo');
+        } else {
+            document.getElementById('chat-input').placeholder = "Ouvindo...";
+        }
     };
     
     rec.onresult = (e) => {
-        inputChat.value = e.results[0][0].transcript;
-        setTimeout(enviarMensagemGemini, 500); 
+        const textoOuvido = e.results[0][0].transcript;
+        if(modoVozAtivo) {
+            btnCentral.classList.remove('mic-pulsing');
+            processarMensagemVoz(textoOuvido);
+        } else {
+            document.getElementById('chat-input').value = textoOuvido;
+            setTimeout(enviarMensagemGemini, 500); 
+        }
     };
     
-    rec.onerror = () => { mostrarNotificacao("Não entendi direito.", "erro"); };
-    rec.onend = () => { btnMic.innerHTML = iconOriginal; inputChat.placeholder = "Digite ou mande áudio..."; };
+    rec.onerror = () => { if(modoVozAtivo) { statusText.textContent = "Não entendi, tente de novo."; btnCentral.classList.remove('mic-pulsing'); } };
+    rec.onend = () => { if(!modoVozAtivo) document.getElementById('chat-input').placeholder = "Digite ou mande áudio..."; };
     rec.start();
 }
 
+// 🧠 Nova Inteligência Silenciosa (Manda pro Gemini, escuta, mas não escreve na tela)
+async function processarMensagemVoz(txt) {
+    const statusText = document.getElementById('voice-status');
+    const userName = currentUser ? currentUser.displayName.split(' ')[0] : "Amigo";
+    statusText.textContent = "Kalango Pensando...";
+
+    const historyString = historicoChat.slice(-6).join("\n");
+    historicoChat.push(userName + " (Áudio): " + txt);
+    localStorage.setItem('kalango_chat_history', JSON.stringify(historicoChat));
+
+    try {
+        const r = await fetch(`${APPS_SCRIPT_URL}?acao=chatGemini&pergunta=${encodeURIComponent(txt)}&nome=${encodeURIComponent(userName)}&historico=${encodeURIComponent(historyString)}`);
+        const data = await r.json();
+        
+        let resposta = data.resposta || "Vixe, deu um erro.";
+        historicoChat.push("Kalango (Áudio): " + resposta.replace(/\|\|ADD:(.*?)\|\|/g, ""));
+        localStorage.setItem('kalango_chat_history', JSON.stringify(historicoChat));
+
+        const cmd = resposta.match(/\|\|ADD:(.*?)\|\|/);
+        if (cmd && cmd[1]) {
+            const p = cmd[1].split('::');
+            adicionarAoCarrinho(p[0].trim(), parseFloat(p[1].trim())||0, p[2]?p[2].trim():"Chat");
+            resposta = resposta.replace(cmd[0], "");
+        }
+
+        statusText.textContent = "Kalango Falando...";
+        await falarComVozDoKalango(resposta, true); // O "true" liga a animação das ondas!
+
+    } catch (e) {
+        statusText.textContent = "Erro de conexão.";
+    }
+}
 
 // =========================================================================
 // LOGIN SEGURO E OUTRAS FUNÇÕES
