@@ -82,3 +82,30 @@ h1.gradient-text {
 /* Ocultar barra de rolagem mas manter funcionamento */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* --- ANIMAÇÕES DO MODO VOZ --- */
+.wave-bar {
+    animation: wave 1s ease-in-out infinite alternate;
+    transform-origin: bottom;
+}
+.wave-bar:nth-child(1) { animation-delay: 0.0s; }
+.wave-bar:nth-child(2) { animation-delay: 0.15s; }
+.wave-bar:nth-child(3) { animation-delay: 0.3s; }
+.wave-bar:nth-child(4) { animation-delay: 0.45s; }
+.wave-bar:nth-child(5) { animation-delay: 0.6s; }
+.wave-bar:nth-child(6) { animation-delay: 0.75s; }
+.wave-bar:nth-child(7) { animation-delay: 0.9s; }
+
+@keyframes wave {
+    0% { transform: scaleY(0.2); opacity: 0.6; }
+    100% { transform: scaleY(1); opacity: 1; }
+}
+
+.espectro-ativo { opacity: 1 !important; }
+.mic-pulsing { animation: pulse-green 1.5s infinite; background-color: #ef4444 !important; box-shadow: 0 0 30px rgba(239, 68, 68, 0.6) !important;}
+
+@keyframes pulse-green {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    70% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
