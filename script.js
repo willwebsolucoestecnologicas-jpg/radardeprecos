@@ -47,8 +47,12 @@ async function falarComVozDoKalango(texto) {
         kalangoAudioAtual.currentTime = 0;
     }
     
-    // Limpa o texto de marcações HTML e asteriscos da IA
-    let textoLimpo = texto.replace(/<[^>]*>?/gm, '').replace(/[*_]/g, '');
+    // Limpa HTML, asteriscos, troca reticências por vírgulas e suaviza exclamações
+    let textoLimpo = texto.replace(/<[^>]*>?/gm, '')
+                          .replace(/[*_]/g, '')
+                          .replace(/\.\.\./g, ', ')
+                          .replace(/!/g, '. ')
+                          .replace(/hummm/gi, '');
     
     // Configuração da voz neural nordestina (Antônio)
     const ssml = `<speak version='1.0' xml:lang='pt-BR'>
