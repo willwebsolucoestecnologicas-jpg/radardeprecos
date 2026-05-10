@@ -57,7 +57,7 @@ async function falarComVozDoKalango(texto) {
     // Configuração da voz neural nordestina (Antônio)
     const ssml = `<speak version='1.0' xml:lang='pt-BR'>
                     <voice xml:lang='pt-BR' xml:gender='Male' name='pt-BR-AntonioNeural'>
-                        <prosody rate="1.05" pitch="0%">
+                        <prosody rate="1.25" pitch="+6%">
                             ${textoLimpo}
                         </prosody>
                     </voice>
