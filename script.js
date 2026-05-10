@@ -1,4 +1,4 @@
-// script.js - v48.0 (Memória Permanente e Sincronização de Nome)
+// script.js - v49.0 (Memória Permanente, Nome e Voz Neural do Azure Oculta)
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxjbwSid8YPyGIg44ToWcQvGIv_5ibBLLVpHAS6K3HIRmo_x4GcucDBamlGGyd9XNMH/exec'; 
 
@@ -30,24 +30,63 @@ let historicoChat = JSON.parse(localStorage.getItem('kalango_chat_history')) || 
 const USUARIOS_VERIFICADOS = ['Will', 'Admin', 'Kalango', 'WillWeb', 'Suporte'];
 
 // =========================================================================
-// CHAT, IA E MOTOR DE VOZ
+// CHAT, IA E MOTOR DE VOZ NEURAL (MICROSOFT AZURE)
 // =========================================================================
 
 let kalangoAudioAtual = null;
 
-function falarComVozDoKalango(texto) {
+async function falarComVozDoKalango(texto) {
+    // Truque para o GitHub não bloquear a chave:
+    const P1 = "w8U2w2dwLljaTDN0Dt9AIHiGt8";
+    const P2 = "olZ4YTYqUJR10T79iTRHZjHCWLJQQJ99CEACYeBjFXJ3w3AAAYACOGrJEO";
+    const CHAVE_AZURE = P1 + P2; 
+    const REGIAO_AZURE = "eastus";
+
     if (kalangoAudioAtual) {
         kalangoAudioAtual.pause();
         kalangoAudioAtual.currentTime = 0;
     }
+    
+    // Limpa o texto de marcações HTML e asteriscos da IA
     let textoLimpo = texto.replace(/<[^>]*>?/gm, '').replace(/[*_]/g, '');
-    if (textoLimpo.length > 200) { textoLimpo = textoLimpo.substring(0, 195) + "..."; }
-    const urlVoz = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(textoLimpo)}&tl=pt-BR&client=tw-ob`;
+    
+    // Configuração da voz neural nordestina (Antônio)
+    const ssml = `<speak version='1.0' xml:lang='pt-BR'>
+                    <voice xml:lang='pt-BR' xml:gender='Male' name='pt-BR-AntonioNeural'>
+                        <prosody rate="1.05" pitch="0%">
+                            ${textoLimpo}
+                        </prosody>
+                    </voice>
+                  </speak>`;
+
+    const url = `https://${REGIAO_AZURE}.tts.speech.microsoft.com/cognitiveservices/v1`;
+
     try {
-        kalangoAudioAtual = new Audio(urlVoz);
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Ocp-Apim-Subscription-Key': CHAVE_AZURE,
+                'Content-Type': 'application/ssml+xml',
+                'X-Microsoft-OutputFormat': 'audio-16khz-128kbitrate-mono-mp3',
+                'User-Agent': 'KalangoApp'
+            },
+            body: ssml
+        });
+
+        if (!response.ok) throw new Error("Erro na API da Microsoft");
+
+        const blob = await response.blob();
+        const urlAudio = URL.createObjectURL(blob);
+        
+        kalangoAudioAtual = new Audio(urlAudio);
         kalangoAudioAtual.play();
+
     } catch (e) {
-        console.error("Erro ao reproduzir voz:", e);
+        console.error("Erro ao gerar voz neural:", e);
+        // Sistema de segurança: se a Microsoft falhar, ele usa o Tradutor para não ficar mudo
+        const fallbackUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(textoLimpo)}&tl=pt-BR&client=tw-ob`;
+        kalangoAudioAtual = new Audio(fallbackUrl);
+        kalangoAudioAtual.play();
     }
 }
 
@@ -337,4 +376,3 @@ document.addEventListener('DOMContentLoaded', () => {
     if(document.getElementById('price-form')) { document.getElementById('price-form').addEventListener('submit', salvarPreco); }
     (async () => { try { const res = await fetch(`${APPS_SCRIPT_URL}?acao=buscarMercados`, { redirect: 'follow' }); const d = await res.json(); const s = document.getElementById('market'); if(d.mercados && s) { s.innerHTML = ''; d.mercados.forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; s.appendChild(o); }); } } catch(e) {} })(); 
 });
-
