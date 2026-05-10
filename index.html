@@ -120,7 +120,7 @@
                     <div class="relative shadow-[0_10px_40px_rgba(0,0,0,0.5)] bg-[#1e293b]/95 backdrop-blur-md rounded-full p-1.5 border border-slate-600/50">
                         <input type="text" id="chat-input" class="w-full bg-slate-900 border border-slate-700 text-white rounded-full pl-5 pr-24 py-3.5 focus:border-emerald-500 outline-none text-sm placeholder-slate-400" placeholder="Digite ou mande áudio...">
                         
-                        <button id="btn-mic-chat" onclick="iniciarGravacaoVoz()" class="absolute right-14 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-400 w-10 h-10 rounded-full flex items-center justify-center transition-colors">
+                        <button id="btn-mic-chat" onclick="abrirModoVoz()" class="absolute right-14 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-400 w-10 h-10 rounded-full flex items-center justify-center transition-colors">
                             <i class="fas fa-microphone text-lg"></i>
                         </button>
 
@@ -269,6 +269,33 @@
         </nav>
         
     </div> 
+
+    <div id="voice-mode-overlay" class="fixed inset-0 z-[100] bg-[#0b1120]/95 backdrop-blur-2xl hidden flex-col items-center justify-center transition-all">
+        <button onclick="fecharModoVoz()" class="absolute top-8 left-6 w-12 h-12 bg-slate-800/50 rounded-full flex items-center justify-center text-slate-400 hover:text-red-400 z-10 border border-slate-700 transition-colors">
+            <i class="fas fa-times text-xl"></i>
+        </button>
+
+        <div class="relative mb-8 mt-10">
+            <div id="voice-avatar-glow" class="absolute -inset-4 bg-emerald-500/20 blur-3xl rounded-full transition-all duration-300"></div>
+            <img src="logokalango.png" class="w-48 h-48 object-contain relative z-10 drop-shadow-[0_0_25px_rgba(16,185,129,0.4)]">
+        </div>
+
+        <h2 id="voice-status" class="text-3xl font-black text-white mb-12 tracking-tight">Ouvindo...</h2>
+
+        <div id="spectrogram" class="flex items-end justify-center gap-2.5 h-24 opacity-0 transition-opacity duration-300">
+            <div class="wave-bar h-6 w-3.5 bg-emerald-400 rounded-full"></div>
+            <div class="wave-bar h-12 w-3.5 bg-emerald-500 rounded-full"></div>
+            <div class="wave-bar h-20 w-3.5 bg-teal-400 rounded-full"></div>
+            <div class="wave-bar h-14 w-3.5 bg-emerald-400 rounded-full"></div>
+            <div class="wave-bar h-8 w-3.5 bg-teal-500 rounded-full"></div>
+            <div class="wave-bar h-16 w-3.5 bg-emerald-500 rounded-full"></div>
+            <div class="wave-bar h-7 w-3.5 bg-teal-400 rounded-full"></div>
+        </div>
+
+        <button id="btn-central-mic" onclick="iniciarGravacaoVoz()" class="mt-16 w-20 h-20 bg-emerald-600 rounded-full flex items-center justify-center text-white text-3xl shadow-[0_0_40px_rgba(16,185,129,0.5)] active:scale-90 transition-all">
+            <i class="fas fa-microphone"></i>
+        </button>
+    </div>
     
     <div id="scanner-modal" class="fixed inset-0 z-[80] bg-black hidden flex-col">
         <div class="p-4 flex justify-between items-center bg-black/50 absolute top-0 w-full z-10">
