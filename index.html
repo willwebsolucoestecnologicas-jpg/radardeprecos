@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kalango Live</title>
+    <title>Kalango - Luís Gomes</title>
     <link rel="icon" type="image/png" href="logokalango.png">
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
@@ -15,213 +15,226 @@
 </head>
 <body class="h-screen flex flex-col overflow-hidden select-none relative">
 
-    <div class="cyber-bg"></div>
-
-    <div id="login-screen" class="fixed inset-0 z-[100] flex flex-col items-center justify-center p-6 bg-[#030307]/90 backdrop-blur-md transition-all duration-500">
-        <div class="glass-panel p-10 w-full max-w-sm text-center relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#00f0ff] to-transparent opacity-50"></div>
-            <img src="logokalango.png" alt="Kalango" class="w-32 h-32 mx-auto mb-6 filter drop-shadow-[0_0_15px_rgba(0,240,255,0.5)]">
-            <h2 class="text-3xl mb-1 titulo-futurista">KALANGO</h2>
-            <span class="text-[12px] tracking-[5px] text-[#00ffa3] font-semibold uppercase mb-10 block">System_Ready</span>
+    <div id="login-screen" class="fixed inset-0 z-[100] flex flex-col items-center justify-center p-6 bg-white transition-all duration-500">
+        <div class="w-full max-w-sm text-center">
+            <div class="w-40 h-40 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <img src="logokalango.png" alt="Kalango" class="w-32 h-32 object-contain">
+            </div>
+            <h2 class="text-4xl font-black text-slate-800 mb-1">Kalango</h2>
+            <p class="text-emerald-600 font-bold tracking-widest uppercase text-xs mb-10">Smart Prices</p>
             
-            <button onclick="fazerLoginGoogle()" class="w-full btn-cyber py-4 px-6 flex items-center justify-center gap-3">
-                <i class="fab fa-google text-xl"></i> INICIAR SESSÃO
+            <button onclick="fazerLoginGoogle()" class="w-full btn-primary py-4 px-6 flex items-center justify-center gap-3 text-lg shadow-xl">
+                <i class="fab fa-google"></i> Acessar Conta
             </button>
         </div>
     </div>
 
-    <div id="voice-mode-overlay" class="fixed inset-0 z-[110] bg-[#030307]/95 backdrop-blur-xl hidden flex-col items-center justify-center transition-all">
-        <button onclick="fecharModoVoz()" class="absolute top-10 left-6 w-12 h-12 glass-panel rounded-full flex items-center justify-center text-[#00f0ff] transition-colors hover:text-white">
+    <div id="voice-mode-overlay" class="fixed inset-0 z-[110] bg-emerald-900/95 backdrop-blur-md hidden flex-col items-center justify-center transition-all">
+        <button onclick="fecharModoVoz()" class="absolute top-8 left-6 w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white transition-colors">
             <i class="fas fa-times text-xl"></i>
         </button>
 
-        <div class="relative mb-12">
-            <div class="absolute -inset-10 bg-[#00f0ff]/20 blur-[50px] rounded-full animate-pulse"></div>
-            <img src="logokalango.png" class="w-52 h-52 object-contain relative z-10 drop-shadow-[0_0_20px_rgba(0,240,255,0.6)]">
+        <img src="logokalango.png" class="w-48 h-48 object-contain relative z-10 mb-8 drop-shadow-2xl">
+        <h2 id="voice-status" class="text-3xl font-black text-white mb-12 tracking-wide">Ouvindo...</h2>
+
+        <div id="spectrogram" class="flex items-end justify-center gap-2 h-20 opacity-0 transition-opacity duration-300 mb-16">
+            <div class="w-3 bg-white rounded-full animate-bounce" style="height: 20px; animation-delay: 0.1s"></div>
+            <div class="w-3 bg-white rounded-full animate-bounce" style="height: 40px; animation-delay: 0.2s"></div>
+            <div class="w-3 bg-white rounded-full animate-bounce" style="height: 60px; animation-delay: 0.3s"></div>
+            <div class="w-3 bg-white rounded-full animate-bounce" style="height: 30px; animation-delay: 0.4s"></div>
+            <div class="w-3 bg-white rounded-full animate-bounce" style="height: 50px; animation-delay: 0.5s"></div>
         </div>
 
-        <h2 id="voice-status" class="text-3xl font-bold text-white mb-14 tracking-widest uppercase neon-text">Aguardando...</h2>
-
-        <div id="spectrogram" class="flex items-end justify-center gap-2 h-28 opacity-0 transition-opacity duration-300">
-            <div class="wave-bar h-6 w-2.5 rounded-full"></div>
-            <div class="wave-bar h-12 w-2.5 rounded-full"></div>
-            <div class="wave-bar h-20 w-2.5 rounded-full"></div>
-            <div class="wave-bar h-14 w-2.5 rounded-full"></div>
-            <div class="wave-bar h-8 w-2.5 rounded-full"></div>
-        </div>
-
-        <button id="btn-central-mic" onclick="iniciarGravacaoVoz()" class="mt-20 w-24 h-24 btn-cyber rounded-full flex items-center justify-center text-3xl">
+        <button id="btn-central-mic" onclick="iniciarGravacaoVoz()" class="w-20 h-20 bg-white rounded-full flex items-center justify-center text-emerald-600 text-3xl shadow-[0_0_30px_rgba(255,255,255,0.3)]">
             <i class="fas fa-microphone"></i>
         </button>
     </div>
 
+    <div id="sidebar-overlay" class="fixed inset-0 bg-slate-900/40 z-[80] hidden backdrop-blur-sm transition-opacity opacity-0" onclick="toggleMenu()"></div>
+    
+    <aside id="sidebar" class="fixed top-0 left-0 h-full w-72 bg-white z-[90] transform -translate-x-full flex flex-col border-r border-slate-100">
+        <div class="p-6 flex items-center gap-4 border-b border-slate-100">
+            <img id="user-avatar" class="w-12 h-12 rounded-full border-2 border-emerald-100 bg-slate-100">
+            <div class="overflow-hidden">
+                <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Bem-vindo(a)</p>
+                <h3 id="user-name-display" class="font-black text-slate-800 text-lg truncate">...</h3>
+            </div>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto py-4">
+            <button onclick="trocarAba('chat')" id="nav-chat" class="sidebar-link w-[calc(100%-24px)]">
+                <i class="fas fa-robot"></i> Assistente Kalango
+            </button>
+            <button onclick="trocarAba('catalogo')" id="nav-catalogo" class="sidebar-link w-[calc(100%-24px)]">
+                <i class="fas fa-tags"></i> Ofertas do Dia
+            </button>
+            <button onclick="trocarAba('consultar')" id="nav-consultar" class="sidebar-link w-[calc(100%-24px)]">
+                <i class="fas fa-search"></i> Buscar Preços
+            </button>
+            <button onclick="trocarAba('registrar')" id="nav-registrar" class="sidebar-link w-[calc(100%-24px)]">
+                <i class="fas fa-qrcode"></i> Registrar Oferta
+            </button>
+            <div class="h-px bg-slate-100 my-4 mx-6"></div>
+            <button onclick="toggleCarrinho(); toggleMenu();" class="sidebar-link w-[calc(100%-24px)] !text-emerald-600">
+                <i class="fas fa-shopping-basket"></i> Meu Carrinho
+            </button>
+        </div>
+        
+        <div class="p-6 border-t border-slate-100 text-center">
+            <img src="logokalango.png" class="w-12 h-12 mx-auto mb-2 opacity-50 grayscale">
+            <p class="text-xs text-slate-400 font-bold">Luís Gomes • RN</p>
+        </div>
+    </aside>
+
     <div id="app-content" class="hidden flex-col h-full w-full relative z-10">
         
-        <header class="p-6 flex justify-between items-center z-10">
-            <div class="flex items-center gap-4">
-                <img src="logokalango.png" class="h-10 w-auto filter drop-shadow-[0_0_10px_rgba(0,240,255,0.4)]">
-                <div>
-                    <h1 class="titulo-futurista text-2xl leading-none">KALANGO</h1>
-                    <span class="text-[10px] tracking-[4px] text-[#00ffa3] font-bold uppercase">Luís Gomes</span>
+        <header class="bg-white h-16 flex justify-between items-center px-4 sticky top-0 z-50 border-b border-slate-100 shadow-sm">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleMenu()" class="w-10 h-10 flex items-center justify-center text-slate-600 hover:bg-slate-50 rounded-full transition-colors">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <div class="flex items-center gap-2">
+                    <img src="logokalango.png" class="h-8 w-auto">
+                    <h1 class="font-black text-xl text-slate-800 tracking-tight">Kalango</h1>
                 </div>
             </div>
-            <div id="user-profile" class="hidden items-center gap-2 glass-panel p-1 pr-3 rounded-full">
-                <img id="user-avatar" class="w-8 h-8 rounded-full border border-[#00f0ff]/50">
-                <span id="user-name-display" class="text-[12px] font-bold text-white uppercase tracking-wider">...</span>
-            </div>
+            
+            <button onclick="toggleCarrinho()" class="relative w-10 h-10 flex items-center justify-center text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 rounded-full transition-colors">
+                <i class="fas fa-shopping-basket text-xl"></i>
+                <span id="cart-count" class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center hidden border border-white">0</span>
+            </button>
         </header>
 
-        <main id="main-container" class="flex-1 overflow-y-auto px-4 pb-32">
+        <main id="main-container" class="flex-1 overflow-y-auto bg-[#f8fafc] relative">
             
-            <div id="chat-container" class="h-full flex flex-col hidden animate-fade-in">
-                <div id="chat-messages" class="flex-1 overflow-y-auto p-2 flex flex-col gap-4 pb-20">
-                    <div class="chat-ai shadow-lg">
-                        <b class="neon-text text-lg block mb-1">Conexão Estabelecida.</b> 
-                        Sou a IA de mercado do Kalango. O que vamos buscar nas prateleiras hoje?
+            <div id="chat-container" class="h-full flex flex-col hidden animate-fade-in relative">
+                <div id="chat-messages" class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 pb-28">
+                    <div class="chat-ai">
+                        <b class="text-emerald-600 block mb-1">Olá!</b> 
+                        Sou o Kalango. O que vamos buscar nas prateleiras hoje? 🛒
                     </div>
                 </div>
                 
-                <div class="fixed bottom-[110px] left-4 right-4 z-[45]">
-                    <div class="glass-panel p-2 flex items-center gap-3">
-                        <button onclick="abrirModoVoz()" class="w-12 h-12 rounded-full flex items-center justify-center text-[#00f0ff] bg-white/5 hover:bg-white/10 transition-colors">
-                            <i class="fas fa-microphone text-xl"></i>
+                <div class="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-100 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] z-40">
+                    <div class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-full border border-slate-200">
+                        <button onclick="abrirModoVoz()" class="w-10 h-10 rounded-full flex items-center justify-center text-emerald-600 hover:bg-white transition-colors">
+                            <i class="fas fa-microphone text-lg"></i>
                         </button>
-                        <input type="text" id="chat-input" placeholder="Comando de texto..." class="flex-1 bg-transparent text-white font-medium outline-none text-base placeholder-slate-500">
-                        <button id="btn-enviar-chat" class="w-12 h-12 btn-cyber rounded-full flex items-center justify-center">
-                            <i class="fas fa-paper-plane"></i>
+                        <input type="text" id="chat-input" placeholder="Mensagem..." class="flex-1 bg-transparent text-slate-800 font-semibold outline-none px-2 placeholder-slate-400">
+                        <button id="btn-enviar-chat" class="w-10 h-10 btn-primary rounded-full flex items-center justify-center">
+                            <i class="fas fa-paper-plane text-sm"></i>
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div id="registrar-container" class="h-full flex flex-col items-center justify-center hidden animate-fade-in">
-                <div id="registrar-home" class="text-center w-full max-w-xs">
-                    <div class="glass-panel w-32 h-32 rounded-3xl flex items-center justify-center mx-auto mb-8">
-                        <i class="fas fa-qrcode text-5xl neon-text"></i>
+            <div id="catalogo-container" class="h-full flex flex-col hidden animate-fade-in p-4">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-black text-slate-800">Ofertas</h2>
+                    <select id="filtro-mercado-catalogo" class="bg-white border border-slate-200 text-slate-600 text-xs px-3 py-2 rounded-lg outline-none font-bold shadow-sm">
+                        <option value="todos">Todos os Mercados</option>
+                    </select>
+                </div>
+                <div id="lista-catalogo" class="flex flex-col gap-3 pb-8"></div>
+            </div>
+
+            <div id="consultar-container" class="h-full flex flex-col hidden animate-fade-in p-4">
+                <h2 class="text-2xl font-black text-slate-800 mb-4">Buscar</h2>
+                <div class="app-card p-2 flex items-center gap-2 mb-6">
+                    <button onclick="iniciarCamera('pesquisar')" class="w-12 h-12 flex items-center justify-center text-slate-400 hover:text-emerald-600 transition-colors">
+                        <i class="fas fa-barcode text-xl"></i>
+                    </button>
+                    <input type="text" id="ean-busca" placeholder="O que procura?" class="flex-1 bg-transparent text-slate-800 font-bold outline-none placeholder-slate-400">
+                    <button id="btn-pesquisar" class="w-12 h-12 btn-primary rounded-xl flex items-center justify-center"><i class="fas fa-search"></i></button>
+                </div>
+                <div id="resultados-consulta" class="flex flex-col gap-3 pb-8"></div>
+            </div>
+
+            <div id="registrar-container" class="h-full flex flex-col items-center hidden animate-fade-in p-4 pt-8">
+                <div id="registrar-home" class="text-center w-full max-w-sm mt-8">
+                    <div class="w-32 h-32 rounded-3xl flex items-center justify-center mx-auto mb-6 bg-emerald-50 text-emerald-500 shadow-sm border border-emerald-100">
+                        <i class="fas fa-qrcode text-5xl"></i>
                     </div>
-                    <h2 class="text-2xl font-bold mb-3 text-white uppercase tracking-wider">Mapear Item</h2>
-                    <p class="text-slate-400 text-sm mb-10">Acesse o scanner para registrar uma nova oferta no banco de dados.</p>
-                    <button onclick="iniciarCamera('registrar')" class="w-full btn-cyber py-4 rounded-xl text-lg font-bold">
-                        <i class="fas fa-crosshairs mr-2"></i> INICIAR SCANNER
+                    <h2 class="text-2xl font-black text-slate-800 mb-2">Registrar Preço</h2>
+                    <p class="text-slate-500 text-sm mb-10 px-4">Ajude a atualizar os preços da cidade escaneando o código de barras do produto.</p>
+                    <button onclick="iniciarCamera('registrar')" class="w-full btn-primary py-4 rounded-xl text-lg flex justify-center items-center gap-2">
+                        <i class="fas fa-camera"></i> Abrir Scanner
                     </button>
                 </div>
                 
-                <div id="price-form-section" class="w-full hidden">
-                    <form id="price-form" class="glass-panel p-6 flex flex-col gap-5">
-                        <div class="flex justify-between items-center border-b border-white/10 pb-4">
-                            <h3 class="font-bold text-xl text-white uppercase tracking-widest">Nova Entrada</h3>
-                            <div class="w-16 h-16 bg-white/5 rounded-xl border border-[#00f0ff]/30 flex flex-col items-center justify-center relative overflow-hidden" id="btn-camera-foto">
-                                <i class="fas fa-camera text-[#00f0ff] text-xl"></i>
+                <div id="price-form-section" class="w-full max-w-md hidden">
+                    <form id="price-form" class="app-card p-6 flex flex-col gap-5">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-4">
+                            <h3 class="font-black text-lg text-slate-800">Detalhes</h3>
+                            <div class="w-14 h-14 bg-slate-50 rounded-xl border border-slate-200 flex flex-col items-center justify-center relative overflow-hidden" id="btn-camera-foto">
+                                <i class="fas fa-camera text-slate-400 text-lg"></i>
                                 <img id="preview-imagem" class="hidden absolute inset-0 w-full h-full object-cover">
                             </div>
                             <input type="file" id="input-foto-produto" accept="image/*" capture="environment" class="hidden">
                         </div>
-                        <input type="hidden" id="username">
-                        <input type="hidden" id="image-url-field">
+                        <input type="hidden" id="username"><input type="hidden" id="image-url-field">
                         
                         <div>
-                            <label class="text-[12px] font-bold text-[#00ffa3] uppercase tracking-widest">Identificação do Produto</label>
-                            <input type="text" id="product-name" class="w-full bg-black/40 border border-white/10 p-4 rounded-xl mt-1 outline-none text-white font-bold text-lg" required>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Produto</label>
+                            <input type="text" id="product-name" class="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-xl mt-1 outline-none text-slate-800 font-bold focus:border-emerald-500 transition-colors" required>
                         </div>
 
                         <div class="flex gap-4">
                             <div class="flex-1">
-                                <label class="text-[12px] font-bold text-[#00ffa3] uppercase tracking-widest">Valor R$</label>
-                                <input type="number" step="0.01" id="price" class="w-full bg-black/40 border border-white/10 p-4 rounded-xl mt-1 outline-none text-[#00f0ff] font-black text-xl" required>
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Preço R$</label>
+                                <input type="number" step="0.01" id="price" class="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-xl mt-1 outline-none text-emerald-600 font-black text-lg focus:border-emerald-500 transition-colors" required>
                             </div>
                             <div class="flex-1">
-                                <label class="text-[12px] font-bold text-[#00ffa3] uppercase tracking-widest">Local</label>
-                                <select id="market" class="w-full bg-[#030307] border border-white/10 p-4 rounded-xl mt-1 outline-none text-white text-sm"></select>
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Mercado</label>
+                                <select id="market" class="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-xl mt-1 outline-none text-slate-800 text-sm focus:border-emerald-500 transition-colors"></select>
                             </div>
                         </div>
 
                         <input type="hidden" id="ean-field">
-                        <button type="submit" class="w-full btn-cyber py-4 rounded-xl font-bold mt-4">SINCRONIZAR DADOS</button>
-                        <button type="button" onclick="location.reload()" class="w-full text-slate-500 font-bold text-sm uppercase tracking-widest mt-2 hover:text-white transition-colors">ABORTAR</button>
+                        <button type="submit" class="w-full btn-primary py-4 rounded-xl mt-4">Salvar Oferta</button>
+                        <button type="button" onclick="location.reload()" class="w-full text-slate-400 font-bold text-sm mt-2 hover:text-slate-600">Cancelar</button>
                     </form>
                 </div>
             </div>
 
-            <div id="consultar-container" class="h-full flex flex-col hidden animate-fade-in pt-4">
-                <div class="glass-panel p-2 flex items-center gap-2 mb-6">
-                    <input type="text" id="ean-busca" placeholder="Termo de busca..." class="flex-1 bg-transparent text-white font-bold p-3 outline-none text-base placeholder-slate-500">
-                    <button id="btn-pesquisar" class="w-12 h-12 btn-cyber rounded-lg flex items-center justify-center"><i class="fas fa-search"></i></button>
-                </div>
-                <div id="resultados-consulta" class="flex flex-col gap-4 pb-24"></div>
-            </div>
-
-            <div id="catalogo-container" class="h-full flex flex-col hidden animate-fade-in pt-4">
-                <div class="flex justify-between items-center mb-6 px-1">
-                    <h2 class="text-2xl font-bold text-white uppercase tracking-wider neon-text">Ofertas Globais</h2>
-                    <select id="filtro-mercado-catalogo" class="glass-panel text-white text-[12px] px-3 py-2 outline-none font-bold uppercase border-none">
-                        <option value="todos" class="bg-[#030307]">Todos</option>
-                    </select>
-                </div>
-                <div id="lista-catalogo" class="flex flex-col gap-4 pb-24"></div>
-            </div>
-
         </main>
-
-        <nav class="nav-island flex justify-around items-center absolute bottom-5 left-5 right-5 h-[80px] z-50 p-2">
-            <button id="nav-chat" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-500 w-16 h-16 transition-colors" onclick="trocarAba('chat')">
-                <i class="fas fa-robot text-2xl"></i>
-                <span class="text-[9px] font-bold uppercase tracking-wider">System</span>
-            </button>
-            <button id="nav-registrar" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-500 w-16 h-16 transition-colors" onclick="trocarAba('registrar')">
-                <i class="fas fa-crosshairs text-2xl"></i>
-                <span class="text-[9px] font-bold uppercase tracking-wider">Scan</span>
-            </button>
-            
-            <button id="btn-carrinho-flutuante" onclick="toggleCarrinho()" class="w-20 h-20 btn-cyber rounded-full flex items-center justify-center text-white active:scale-95 transition-transform z-10 relative -top-6 shadow-[0_0_20px_rgba(0,240,255,0.4)] border-4 border-[#030307]">
-                <i class="fas fa-shopping-basket text-2xl"></i>
-                <span id="cart-count" class="absolute top-0 right-0 bg-[#00ffa3] text-black text-[12px] font-black w-6 h-6 rounded-full flex items-center justify-center border-2 border-[#030307] hidden">0</span>
-            </button>
-
-            <button id="nav-consultar" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-500 w-16 h-16 transition-colors" onclick="trocarAba('consultar')">
-                <i class="fas fa-search text-2xl"></i>
-                <span class="text-[9px] font-bold uppercase tracking-wider">Busca</span>
-            </button>
-            <button id="nav-catalogo" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-500 w-16 h-16 transition-colors" onclick="trocarAba('catalogo')">
-                <i class="fas fa-layer-group text-2xl"></i>
-                <span class="text-[9px] font-bold uppercase tracking-wider">Dados</span>
-            </button>
-        </nav>
-        
     </div> 
     
     <div id="scanner-modal" class="fixed inset-0 z-[120] bg-black hidden flex-col">
-        <div class="p-6 flex justify-between items-center absolute top-0 w-full z-10 bg-black/50 backdrop-blur-md border-b border-white/10">
-            <h3 class="text-white font-bold tracking-widest uppercase text-lg neon-text">Interface de Câmera</h3>
-            <button onclick="fecharCamera()" class="text-white w-12 h-12 glass-panel rounded-full flex items-center justify-center"><i class="fas fa-times text-xl"></i></button>
+        <div class="p-4 flex justify-between items-center absolute top-0 w-full z-10 bg-gradient-to-b from-black/80 to-transparent">
+            <h3 class="text-white font-bold">Leitor de Código</h3>
+            <button onclick="fecharCamera()" class="text-white w-10 h-10 bg-white/20 backdrop-blur rounded-full"><i class="fas fa-times"></i></button>
         </div>
         <div id="reader" class="w-full h-full"></div>
     </div>
 
-    <div id="cart-modal" class="fixed inset-0 z-[130] bg-[#030307]/90 backdrop-blur-sm hidden flex-col justify-end transition-opacity">
-        <div id="cart-content" class="glass-panel w-full h-[85vh] rounded-t-[32px] p-8 flex flex-col transform translate-y-full transition-transform duration-300 !border-b-0 !border-x-0 !rounded-b-none">
-            <div class="flex justify-between items-center mb-8 border-b border-white/10 pb-6">
-                <h3 class="font-extrabold text-2xl text-white uppercase tracking-widest neon-text">Cesta de Dados</h3>
-                <div class="flex gap-3">
-                    <button onclick="abrirModalLimpeza()" class="w-12 h-12 bg-red-500/20 text-red-400 rounded-full flex items-center justify-center border border-red-500/50 hover:bg-red-500/30 transition-colors"><i class="fas fa-trash-alt"></i></button>
-                    <button onclick="toggleCarrinho()" class="w-12 h-12 bg-white/5 text-white rounded-full flex items-center justify-center border border-white/10 hover:bg-white/10 transition-colors"><i class="fas fa-times text-xl"></i></button>
+    <div id="cart-modal" class="fixed inset-0 z-[130] hidden flex-col justify-end">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onclick="toggleCarrinho()"></div>
+        <div id="cart-content" class="bg-white w-full h-[85vh] rounded-t-[32px] p-6 flex flex-col transform translate-y-full transition-transform duration-300 relative z-10 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
+            <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6"></div>
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="font-black text-2xl text-slate-800">Carrinho</h3>
+                <div class="flex gap-2">
+                    <button onclick="abrirModalLimpeza()" class="w-10 h-10 bg-red-50 text-red-500 rounded-full flex items-center justify-center"><i class="fas fa-trash-alt"></i></button>
+                    <button onclick="toggleCarrinho()" class="w-10 h-10 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
                 </div>
             </div>
             
-            <div id="cart-items" class="flex-1 overflow-y-auto flex flex-col gap-4"></div>
+            <div id="cart-items" class="flex-1 overflow-y-auto flex flex-col gap-3 pb-4"></div>
             
-            <div class="mt-8 pt-6 border-t border-white/10">
+            <div class="mt-4 pt-4 border-t border-slate-100">
                 <div class="flex justify-between items-center mb-6">
-                    <span class="text-slate-400 font-bold uppercase text-sm tracking-widest">Valor Estimado</span>
-                    <span id="cart-total-price" class="text-4xl font-black text-[#00f0ff] filter drop-shadow-[0_0_10px_rgba(0,240,255,0.4)]">R$ 0,00</span>
+                    <span class="text-slate-500 font-bold uppercase text-xs tracking-widest">Total Estimado</span>
+                    <span id="cart-total-price" class="text-3xl font-black text-emerald-600">R$ 0,00</span>
                 </div>
-                <button onclick="toggleCarrinho()" class="w-full btn-cyber py-5 rounded-xl text-xl font-bold">FECHAR INTERFACE</button>
+                <button onclick="toggleCarrinho()" class="w-full btn-primary py-4 rounded-xl text-lg">Voltar às Compras</button>
             </div>
         </div>
     </div>
 
-    <div id="toast-notification" class="fixed top-8 left-1/2 -translate-x-1/2 px-6 py-4 rounded-xl shadow-2xl z-[200] flex items-center gap-3 font-bold transition-all duration-300 pointer-events-none opacity-0 -translate-y-32 glass-panel border-[#00f0ff]">
+    <div id="toast-notification" class="fixed top-6 left-1/2 -translate-x-1/2 px-5 py-3 rounded-full shadow-lg z-[200] flex items-center gap-2 font-bold transition-all duration-300 pointer-events-none opacity-0 -translate-y-32 bg-slate-800 text-white">
         <span id="toast-icon"></span>
-        <span id="toast-message" class="text-white tracking-wider uppercase text-sm"></span>
+        <span id="toast-message" class="text-sm"></span>
     </div>
 
     <script src="script.js"></script>
