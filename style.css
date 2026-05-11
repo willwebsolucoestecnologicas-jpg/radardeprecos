@@ -1,11 +1,10 @@
-/* style.css - v80.0 (Clean Premium & Menu Lateral) */
+/* style.css - v90.0 (Splash Screen & Flex Fix) */
 
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
 
 :root {
-    --kalango-green: #10b981; /* Verde do Logo */
-    --kalango-dark: #064e3b;  /* Verde Escuro */
-    --bg-light: #f8fafc;      /* Fundo Cinza super claro */
+    --kalango-green: #10b981;
+    --bg-light: #f8fafc;
     --text-main: #1e293b;
     --text-muted: #64748b;
 }
@@ -18,13 +17,21 @@ body {
     -webkit-tap-highlight-color: transparent;
 }
 
+/* Splash Screen Logo Pulse */
+.splash-logo {
+    animation: pulseGlow 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+@keyframes pulseGlow {
+    0%, 100% { filter: drop-shadow(0 0 15px rgba(16, 185, 129, 0.2)); transform: scale(1); }
+    50% { filter: drop-shadow(0 0 25px rgba(16, 185, 129, 0.6)); transform: scale(1.05); }
+}
+
 /* Cards e Paineis Clean */
 .app-card {
     background: #ffffff;
     border-radius: 20px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
     border: 1px solid rgba(0,0,0,0.02);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 /* Menu Lateral (Sidebar) */
@@ -57,7 +64,7 @@ body {
 }
 .btn-primary:active { transform: scale(0.96); }
 
-/* CHAT: Balões Modernos Estilo WhatsApp/Telegram */
+/* CHAT: Balões Modernos */
 .chat-user {
     align-self: flex-end; 
     background: var(--kalango-green);
