@@ -1,4 +1,4 @@
-// script.js - v49.0 (Memória Permanente, Nome e Voz Neural do Azure Oculta)
+// script.js - v50.0 (Cyber-Glass, Modo Voz Imersivo e Memória)
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxjbwSid8YPyGIg44ToWcQvGIv_5ibBLLVpHAS6K3HIRmo_x4GcucDBamlGGyd9XNMH/exec'; 
 
@@ -12,9 +12,7 @@ const firebaseConfig = {
   measurementId: "G-SMR42PSTBS"
 };
 
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
+if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const auth = firebase.auth();
 
 let html5QrCode;
@@ -23,18 +21,13 @@ let catalogoDados = [];
 let carrinho = JSON.parse(localStorage.getItem('kalango_cart')) || [];
 let modoScanAtual = 'registrar';
 let currentUser = null; 
-
-// 🔥 MEMÓRIA PERMANENTE: Salva no celular para não esquecer se a página recarregar!
 let historicoChat = JSON.parse(localStorage.getItem('kalango_chat_history')) || []; 
 
-const USUARIOS_VERIFICADOS = ['Will', 'Admin', 'Kalango', 'WillWeb', 'Suporte'];
-
 // =========================================================================
-// CHAT, IA E MOTOR DE VOZ NEURAL (MICROSOFT AZURE)
+// MOTOR DE VOZ NEURAL (MICROSOFT AZURE) E MODO LIVE
 // =========================================================================
 
 let kalangoAudioAtual = null;
-
 let modoVozAtivo = false;
 
 function abrirModoVoz() {
@@ -42,7 +35,7 @@ function abrirModoVoz() {
     const overlay = document.getElementById('voice-mode-overlay');
     overlay.classList.remove('hidden');
     overlay.classList.add('flex');
-    iniciarGravacaoVoz(); // Já entra escutando!
+    iniciarGravacaoVoz();
 }
 
 function fecharModoVoz() {
@@ -57,6 +50,7 @@ function fecharModoVoz() {
 }
 
 async function falarComVozDoKalango(texto, isModoVoz = false) {
+    // Chave Oculta
     const P1 = "w8U2w2dwLljaTDN0Dt9AIHiGt8";
     const P2 = "olZ4YTYqUJR10T79iTRHZjHCWLJQQJ99CEACYeBjFXJ3w3AAAYACOGrJEO";
     const CHAVE_AZURE = P1 + P2; 
@@ -67,7 +61,8 @@ async function falarComVozDoKalango(texto, isModoVoz = false) {
         kalangoAudioAtual.currentTime = 0;
     }
     
-    let textoLimpo = texto.replace(/<[^>]*>?/gm, '').replace(/[*_]/g, '');
+    // Limpeza de texto para não gaguejar
+    let textoLimpo = texto.replace(/<[^>]*>?/gm, '').replace(/[*_]/g, '').replace(/\.\.\./g, ', ').replace(/!/g, '. ').replace(/hummm/gi, '');
     
     const ssml = `<speak version='1.0' xml:lang='pt-BR'><voice xml:lang='pt-BR' xml:gender='Male' name='pt-BR-AntonioNeural'><prosody rate="1.05" pitch="0%">${textoLimpo}</prosody></voice></speak>`;
     const url = `https://${REGIAO_AZURE}.tts.speech.microsoft.com/cognitiveservices/v1`;
@@ -82,7 +77,7 @@ async function falarComVozDoKalango(texto, isModoVoz = false) {
         const blob = await response.blob();
         kalangoAudioAtual = new Audio(URL.createObjectURL(blob));
         
-        // 🚨 MÁGICA DA ANIMAÇÃO AQUI
+        // Mágica da Animação do Espectrograma
         if (isModoVoz) {
             const espectro = document.getElementById('spectrogram');
             const statusText = document.getElementById('voice-status');
@@ -96,93 +91,11 @@ async function falarComVozDoKalango(texto, isModoVoz = false) {
         kalangoAudioAtual.play();
 
     } catch (e) {
+        console.error(e);
         const fallback = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(textoLimpo)}&tl=pt-BR&client=tw-ob`;
         kalangoAudioAtual = new Audio(fallback);
         kalangoAudioAtual.play();
     }
-}
-function rolarChatParaFim() {
-    const area = document.getElementById('chat-messages');
-    let spacer = document.getElementById('chat-spacer');
-    if (!spacer) {
-        spacer = document.createElement('div');
-        spacer.id = 'chat-spacer';
-        spacer.className = 'h-32 w-full shrink-0'; 
-    }
-    area.appendChild(spacer); 
-    area.scrollTop = area.scrollHeight; 
-}
-
-async function enviarMensagemGemini() {
-    const input = document.getElementById('chat-input');
-    const area = document.getElementById('chat-messages');
-    const txt = input.value.trim();
-    
-    if (!txt) return;
-
-    // Pega o seu nome
-    const userName = currentUser ? currentUser.displayName.split(' ')[0] : "Amigo(a)";
-
-    const divUser = document.createElement('div');
-    divUser.className = 'chat-user text-sm mb-2';
-    divUser.textContent = txt;
-    area.appendChild(divUser);
-    
-    input.value = ''; 
-    rolarChatParaFim();
-
-    const id = 'load-' + Date.now();
-    const divLoad = document.createElement('div');
-    divLoad.id = id;
-    divLoad.className = 'chat-ai text-sm mb-2 opacity-50';
-    divLoad.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Digitando...';
-    area.appendChild(divLoad);
-    rolarChatParaFim();
-
-    // 🔥 PREPARA O HISTÓRICO (Lembrando as últimas 6 mensagens)
-    const historyString = historicoChat.slice(-6).join("\n");
-    historicoChat.push(userName + ": " + txt);
-    localStorage.setItem('kalango_chat_history', JSON.stringify(historicoChat)); // Salva a pergunta no celular
-
-    try {
-        const fetchUrl = `${APPS_SCRIPT_URL}?acao=chatGemini&pergunta=${encodeURIComponent(txt)}&nome=${encodeURIComponent(userName)}&historico=${encodeURIComponent(historyString)}`;
-        const res = await fetch(fetchUrl, { redirect: 'follow' });
-        const data = await res.json();
-        
-        document.getElementById(id).remove();
-        let respostaFinal = data.resposta || "Sem resposta.";
-
-        // 🔥 SALVA A RESPOSTA NO CELULAR TAMBÉM
-        historicoChat.push("Kalango: " + respostaFinal.replace(/\|\|ADD:(.*?)\|\|/g, ""));
-        localStorage.setItem('kalango_chat_history', JSON.stringify(historicoChat));
-
-        const comandoAdd = respostaFinal.match(/\|\|ADD:(.*?)\|\|/);
-        if (comandoAdd && comandoAdd[1]) {
-            const partes = comandoAdd[1].split('::');
-            const prod = partes[0].trim();
-            const prec = parseFloat(partes[1].trim()) || 0;
-            const merc = partes[2] ? partes[2].trim() : "Chat";
-            
-            adicionarAoCarrinho(prod, prec, merc);
-            respostaFinal = respostaFinal.replace(comandoAdd[0], "");
-        }
-
-        falarComVozDoKalango(respostaFinal);
-
-        const divAI = document.createElement('div');
-        divAI.className = 'chat-ai text-sm mb-2';
-        divAI.innerHTML = respostaFinal.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-        area.appendChild(divAI);
-
-    } catch (e) {
-        if(document.getElementById(id)) document.getElementById(id).remove();
-        const divErr = document.createElement('div');
-        divErr.className = 'chat-ai text-sm mb-2 text-red-400';
-        divErr.textContent = "Erro de conexão.";
-        area.appendChild(divErr);
-    }
-    
-    rolarChatParaFim();
 }
 
 function iniciarGravacaoVoz() {
@@ -217,11 +130,10 @@ function iniciarGravacaoVoz() {
     };
     
     rec.onerror = () => { if(modoVozAtivo) { statusText.textContent = "Não entendi, tente de novo."; btnCentral.classList.remove('mic-pulsing'); } };
-    rec.onend = () => { if(!modoVozAtivo) document.getElementById('chat-input').placeholder = "Digite ou mande áudio..."; };
+    rec.onend = () => { if(!modoVozAtivo) document.getElementById('chat-input').placeholder = "Pergunte ao Kalango..."; };
     rec.start();
 }
 
-// 🧠 Nova Inteligência Silenciosa (Manda pro Gemini, escuta, mas não escreve na tela)
 async function processarMensagemVoz(txt) {
     const statusText = document.getElementById('voice-status');
     const userName = currentUser ? currentUser.displayName.split(' ')[0] : "Amigo";
@@ -247,71 +159,122 @@ async function processarMensagemVoz(txt) {
         }
 
         statusText.textContent = "Kalango Falando...";
-        await falarComVozDoKalango(resposta, true); // O "true" liga a animação das ondas!
+        await falarComVozDoKalango(resposta, true);
 
     } catch (e) {
         statusText.textContent = "Erro de conexão.";
     }
 }
 
+function rolarChatParaFim() {
+    const area = document.getElementById('chat-messages');
+    let spacer = document.getElementById('chat-spacer');
+    if (!spacer) {
+        spacer = document.createElement('div');
+        spacer.id = 'chat-spacer';
+        spacer.className = 'h-32 w-full shrink-0'; 
+    }
+    area.appendChild(spacer); 
+    area.scrollTop = area.scrollHeight; 
+}
+
+async function enviarMensagemGemini() {
+    const input = document.getElementById('chat-input');
+    const area = document.getElementById('chat-messages');
+    const txt = input.value.trim();
+    if (!txt) return;
+
+    const userName = currentUser ? currentUser.displayName.split(' ')[0] : "Amigo(a)";
+
+    const divUser = document.createElement('div');
+    divUser.className = 'chat-user text-sm mb-2';
+    divUser.textContent = txt;
+    area.appendChild(divUser);
+    
+    input.value = ''; rolarChatParaFim();
+
+    const id = 'load-' + Date.now();
+    const divLoad = document.createElement('div');
+    divLoad.id = id;
+    divLoad.className = 'chat-ai text-sm mb-2 opacity-50';
+    divLoad.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Pensando...';
+    area.appendChild(divLoad);
+    rolarChatParaFim();
+
+    const historyString = historicoChat.slice(-6).join("\n");
+    historicoChat.push(userName + ": " + txt);
+    localStorage.setItem('kalango_chat_history', JSON.stringify(historicoChat));
+
+    try {
+        const fetchUrl = `${APPS_SCRIPT_URL}?acao=chatGemini&pergunta=${encodeURIComponent(txt)}&nome=${encodeURIComponent(userName)}&historico=${encodeURIComponent(historyString)}`;
+        const res = await fetch(fetchUrl, { redirect: 'follow' });
+        const data = await res.json();
+        
+        document.getElementById(id).remove();
+        let respostaFinal = data.resposta || "Sem resposta.";
+
+        historicoChat.push("Kalango: " + respostaFinal.replace(/\|\|ADD:(.*?)\|\|/g, ""));
+        localStorage.setItem('kalango_chat_history', JSON.stringify(historicoChat));
+
+        const comandoAdd = respostaFinal.match(/\|\|ADD:(.*?)\|\|/);
+        if (comandoAdd && comandoAdd[1]) {
+            const partes = comandoAdd[1].split('::');
+            adicionarAoCarrinho(partes[0].trim(), parseFloat(partes[1].trim()) || 0, partes[2] ? partes[2].trim() : "Chat");
+            respostaFinal = respostaFinal.replace(comandoAdd[0], "");
+        }
+
+        falarComVozDoKalango(respostaFinal, false);
+
+        const divAI = document.createElement('div');
+        divAI.className = 'chat-ai text-sm mb-2';
+        divAI.innerHTML = respostaFinal.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+        area.appendChild(divAI);
+
+    } catch (e) {
+        if(document.getElementById(id)) document.getElementById(id).remove();
+        const divErr = document.createElement('div');
+        divErr.className = 'chat-ai text-sm mb-2 text-red-400';
+        divErr.textContent = "Erro de conexão.";
+        area.appendChild(divErr);
+    }
+    rolarChatParaFim();
+}
+
+
 // =========================================================================
-// LOGIN SEGURO E OUTRAS FUNÇÕES
+// LÓGICA DO APLICATIVO
 // =========================================================================
 
 function fazerLoginGoogle() { 
     const provider = new firebase.auth.GoogleAuthProvider(); 
     provider.setCustomParameters({ prompt: 'select_account' });
-    
     auth.signInWithPopup(provider).catch((error) => {
-        if (error.code === 'auth/unauthorized-domain') {
-            alert("⚠️ ALERTA: Domínio não autorizado no Firebase!");
-        } else if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
-            auth.signInWithRedirect(provider);
-        } else {
-            console.error("Erro no login: ", error);
-        }
+        if (error.code === 'auth/unauthorized-domain') alert("⚠️ Domínio não autorizado no Firebase!");
+        else auth.signInWithRedirect(provider);
     }); 
 }
-
-auth.getRedirectResult().catch((error) => {
-    if (error.code === 'auth/unauthorized-domain') {
-        alert("⚠️ ALERTA: O domínio deste site não está autorizado no Firebase!");
-    }
-});
 
 auth.onAuthStateChanged((user) => { 
     if (user) { 
         currentUser = user; 
         document.getElementById('login-screen').classList.add('hidden'); 
+        document.getElementById('app-content').classList.remove('hidden');
+        document.getElementById('app-content').classList.add('flex');
         
-        const appContent = document.getElementById('app-content');
-        if(appContent) {
-            appContent.classList.remove('hidden');
-            appContent.classList.add('flex');
-        }
-        
-        if(document.getElementById('user-profile')) { 
-            document.getElementById('user-profile').classList.remove('hidden'); 
-            document.getElementById('user-profile').classList.add('flex'); 
-            document.getElementById('user-name-display').textContent = user.displayName.split(' ')[0]; 
-            document.getElementById('user-avatar').src = user.photoURL; 
-        } 
+        document.getElementById('user-profile').classList.remove('hidden'); 
+        document.getElementById('user-profile').classList.add('flex'); 
+        document.getElementById('user-name-display').textContent = user.displayName.split(' ')[0]; 
+        document.getElementById('user-avatar').src = user.photoURL; 
         
         document.getElementById('username').value = user.displayName; 
         atualizarContadorCarrinho(); 
-        if(typeof carregarCatalogo === 'function') carregarCatalogo();
-        
+        carregarCatalogo();
         trocarAba('chat');
-        
     } else { 
         currentUser = null; 
         document.getElementById('login-screen').classList.remove('hidden'); 
-        
-        const appContent = document.getElementById('app-content');
-        if(appContent) {
-            appContent.classList.add('hidden');
-            appContent.classList.remove('flex');
-        }
+        document.getElementById('app-content').classList.add('hidden');
+        document.getElementById('app-content').classList.remove('flex');
     } 
 });
 
@@ -321,7 +284,7 @@ function adicionarAoCarrinho(produto, preco, mercado) {
     if (existente) existente.qtd++; else carrinho.push({ id, produto, preco, mercado, qtd: 1 });
     salvarCarrinho(); mostrarNotificacao(`+1 ${produto}`);
     const btn = document.getElementById('btn-carrinho-flutuante');
-    if(btn) { btn.classList.remove('hidden'); btn.classList.add('scale-125'); setTimeout(() => btn.classList.remove('scale-125'), 200); }
+    if(btn) { btn.classList.remove('hidden'); btn.classList.add('scale-110'); setTimeout(() => btn.classList.remove('scale-110'), 200); }
 }
 
 function toggleCarrinho() { 
@@ -332,15 +295,10 @@ function toggleCarrinho() {
 function atualizarContadorCarrinho() { const c = carrinho.reduce((a, b) => a + b.qtd, 0); const b = document.getElementById('cart-count'); if(b) { b.textContent = c; b.classList.toggle('hidden', c === 0); } }
 function alterarQtd(id, d) { const i = carrinho.find(x => x.id === id); if (i) { i.qtd += d; if (i.qtd <= 0) carrinho = carrinho.filter(x => x.id !== id); } salvarCarrinho(); renderizarCarrinho(); }
 
-// Se você precisar limpar o histórico da IA para começar um assunto novo
 function limparCarrinho() { 
     if(confirm("Limpar carrinho e resetar papo do Kalango?")) { 
-        carrinho = []; 
-        salvarCarrinho(); 
-        renderizarCarrinho(); 
-        toggleCarrinho(); 
-        historicoChat = []; // Zera a memória também para testar do zero
-        localStorage.removeItem('kalango_chat_history');
+        carrinho = []; salvarCarrinho(); renderizarCarrinho(); toggleCarrinho(); 
+        historicoChat = []; localStorage.removeItem('kalango_chat_history');
     } 
 }
 function salvarCarrinho() { localStorage.setItem('kalango_cart', JSON.stringify(carrinho)); atualizarContadorCarrinho(); }
@@ -350,53 +308,65 @@ function renderizarCarrinho() {
     c.innerHTML = ''; let total = 0; let qtd = 0; 
     carrinho.forEach(i => { 
         total += i.preco * i.qtd; qtd += i.qtd; 
-        c.innerHTML += `<div class="bg-slate-800 p-3 rounded mb-2 flex justify-between items-center border border-slate-700"><div><b>${i.produto}</b><br><small class="text-slate-400">${i.mercado}</small></div><div class="text-right"><span class="text-emerald-400 font-bold block mb-1">R$ ${(i.preco * i.qtd).toFixed(2)}</span><div class="flex items-center gap-2 bg-slate-900 rounded px-2 py-1"><button onclick="alterarQtd('${i.id}',-1)" class="text-red-400 font-bold px-1">-</button> <span class="text-xs">${i.qtd}</span> <button onclick="alterarQtd('${i.id}',1)" class="text-emerald-400 font-bold px-1">+</button></div></div></div>`; 
+        c.innerHTML += `<div class="glass-panel p-3 rounded-xl mb-2 flex justify-between items-center"><div class="flex-1"><b>${i.produto}</b><br><small class="text-emerald-500/80 uppercase tracking-wider text-[9px]">${i.mercado}</small></div><div class="text-right"><span class="text-emerald-400 font-black block mb-1">R$ ${(i.preco * i.qtd).toFixed(2)}</span><div class="flex items-center gap-2 bg-[#020617] rounded-lg px-2 py-1 border border-white/5"><button onclick="alterarQtd('${i.id}',-1)" class="text-red-400 font-bold px-2">-</button> <span class="text-xs w-4 text-center">${i.qtd}</span> <button onclick="alterarQtd('${i.id}',1)" class="text-emerald-400 font-bold px-2">+</button></div></div></div>`; 
     }); 
     t.textContent = `R$ ${total.toFixed(2)}`; q.textContent = `${qtd}`; 
 }
-function abrirModalLimpeza() { if(confirm("Limpar?")) { limparCarrinho(); } }
+function abrirModalLimpeza() { if(confirm("Limpar Carrinho?")) { limparCarrinho(); } }
 
 async function trocarAba(aba) { 
     const abas = ['registrar', 'consultar', 'catalogo', 'chat']; if (scannerIsRunning) fecharCamera(); 
-    abas.forEach(a => { document.getElementById(a + '-container').classList.add('hidden'); document.getElementById('nav-' + a).className = "nav-btn text-slate-500 hover:text-emerald-400"; }); 
-    document.getElementById(aba + '-container').classList.remove('hidden'); document.getElementById('nav-' + aba).className = "nav-btn text-emerald-400 bg-emerald-500/10 rounded-2xl py-1 px-2"; 
+    abas.forEach(a => { document.getElementById(a + '-container').classList.add('hidden'); document.getElementById('nav-' + a).classList.remove('text-emerald-400'); }); 
+    document.getElementById(aba + '-container').classList.remove('hidden'); document.getElementById('nav-' + aba).classList.add('text-emerald-400'); 
     if(aba === 'catalogo') carregarCatalogo(); 
-    if (aba === 'chat') { setTimeout(() => rolarChatParaFim(), 100); } 
+    if (aba === 'chat') setTimeout(() => rolarChatParaFim(), 100); 
 }
 
 async function carregarCatalogo() { try { const r = await fetch(`${APPS_SCRIPT_URL}?acao=listarCatalogo`, { redirect: 'follow' }); const d = await r.json(); catalogoDados = d.catalogo || []; atualizarListaCatalogo(catalogoDados); } catch(e) {} }
 function atualizarListaCatalogo(d) { 
     const l = document.getElementById('lista-catalogo'); l.innerHTML = ''; 
-    d.forEach(i => { l.innerHTML += `<div class="bg-slate-800 p-3 rounded mb-2 flex justify-between border border-slate-700"><div><b>${i.produto}</b><br><span class="text-emerald-400 font-bold">R$ ${i.preco.toFixed(2)}</span></div><button onclick="adicionarAoCarrinho('${i.produto.replace(/'/g, "\\'")}',${i.preco},'${i.mercado.replace(/'/g, "\\'")}')" class="text-white bg-emerald-600 hover:bg-emerald-500 w-10 h-10 rounded-full flex items-center justify-center"><i class="fas fa-cart-plus"></i></button></div>`; }); 
+    d.forEach(i => { 
+        l.innerHTML += `
+        <div class="glass-panel p-4 mb-3 flex justify-between items-center rounded-2xl">
+            <div class="flex gap-3 items-center">
+                <div class="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center border border-white/10"><i class="fas fa-box text-emerald-500"></i></div>
+                <div><b class="text-white block text-sm">${i.produto}</b><span class="text-[9px] uppercase tracking-wider opacity-50">${i.mercado}</span></div>
+            </div>
+            <div class="text-right">
+                <span class="text-emerald-400 font-black block text-lg">R$ ${i.preco.toFixed(2)}</span>
+                <button onclick="adicionarAoCarrinho('${i.produto.replace(/'/g, "\\'")}',${i.preco},'${i.mercado.replace(/'/g, "\\'")}')" class="btn-cyber px-3 py-1 rounded-lg mt-1 text-[10px]">+ ADD</button>
+            </div>
+        </div>`; 
+    }); 
 }
 
 async function pesquisarPrecos() { 
-    const t = document.getElementById('ean-busca').value; if (!t) return mostrarNotificacao("Digite o nome ou EAN", "erro");
+    const t = document.getElementById('ean-busca').value; if (!t) return mostrarNotificacao("Digite algo", "erro");
     const r = await fetch(`${APPS_SCRIPT_URL}?acao=consultarPrecos&ean=${encodeURIComponent(t)}`, { redirect: 'follow' }); const d = await r.json(); const c = document.getElementById('resultados-consulta'); 
     c.innerHTML = ''; if (!d.resultados || d.resultados.length === 0) { c.innerHTML = '<p class="text-center opacity-50 p-5">Nada encontrado.</p>'; return; }
-    d.resultados.forEach(i => { c.innerHTML += `<div class="bg-slate-800 p-4 rounded-xl mb-3 border border-slate-700 flex justify-between items-center"><div><b class="text-lg text-white">${i.produto}</b><br><span class="text-emerald-400 font-black text-xl">R$ ${i.preco.toFixed(2)}</span><span class="text-xs bg-slate-700 px-2 py-1 rounded ml-2">${i.mercado}</span></div><button onclick="adicionarAoCarrinho('${i.produto.replace(/'/g, "\\'")}',${i.preco},'${i.mercado.replace(/'/g, "\\'")}')" class="text-white bg-emerald-600 hover:bg-emerald-500 w-12 h-12 rounded-full flex items-center justify-center shadow-lg"><i class="fas fa-plus"></i></button></div>`; }); 
+    d.resultados.forEach(i => { 
+        c.innerHTML += `<div class="glass-panel p-4 rounded-2xl mb-3 flex justify-between items-center"><div><b class="text-white">${i.produto}</b><br><span class="text-emerald-400 font-black text-xl">R$ ${i.preco.toFixed(2)}</span><span class="text-[9px] bg-white/10 px-2 py-1 rounded ml-2 uppercase tracking-wider">${i.mercado}</span></div><button onclick="adicionarAoCarrinho('${i.produto.replace(/'/g, "\\'")}',${i.preco},'${i.mercado.replace(/'/g, "\\'")}')" class="text-white bg-emerald-600 hover:bg-emerald-500 w-10 h-10 rounded-xl flex items-center justify-center shadow-lg"><i class="fas fa-plus"></i></button></div>`; 
+    }); 
 }
 
 function mostrarNotificacao(m, tipo = 'sucesso') { 
     const t = document.getElementById('toast-notification'); document.getElementById('toast-message').textContent = m; 
-    if(tipo === 'erro') { t.className = "fixed top-6 left-1/2 -translate-x-1/2 px-5 py-3 rounded-full shadow-2xl z-[100] flex items-center gap-3 font-bold transition-all duration-300 pointer-events-none bg-red-500 text-white";
-    } else { t.className = "fixed top-6 left-1/2 -translate-x-1/2 px-5 py-3 rounded-full shadow-2xl z-[100] flex items-center gap-3 font-bold transition-all duration-300 pointer-events-none bg-emerald-600 text-white"; }
+    if(tipo === 'erro') { t.className = "fixed top-6 left-1/2 -translate-x-1/2 px-5 py-3 rounded-full shadow-[0_10px_40px_rgba(239,68,68,0.5)] z-[100] flex items-center gap-3 font-bold transition-all duration-300 bg-red-500 text-white border border-red-400";
+    } else { t.className = "fixed top-6 left-1/2 -translate-x-1/2 px-5 py-3 rounded-full shadow-[0_10px_40px_rgba(16,185,129,0.5)] z-[100] flex items-center gap-3 font-bold transition-all duration-300 bg-emerald-600 text-white border border-emerald-400"; }
     t.classList.remove('-translate-y-32', 'opacity-0'); setTimeout(() => t.classList.add('-translate-y-32', 'opacity-0'), 3000); 
 }
 
 async function iniciarCamera(m) { 
-    modoScanAtual = m; document.getElementById('scanner-modal').classList.remove('hidden'); 
-    try { html5QrCode = new Html5Qrcode("reader"); scannerIsRunning = true; await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess); } catch(e){ alert("Erro ao iniciar a Câmera"); fecharCamera(); } 
+    modoScanAtual = m; document.getElementById('scanner-modal').classList.remove('hidden'); document.getElementById('scanner-modal').classList.add('flex');
+    try { html5QrCode = new Html5Qrcode("reader"); scannerIsRunning = true; await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess); } catch(e){ alert("Erro na Câmera"); fecharCamera(); } 
 }
-function fecharCamera() { if(scannerIsRunning && html5QrCode) { html5QrCode.stop(); scannerIsRunning = false; } document.getElementById('scanner-modal').classList.add('hidden'); }
+function fecharCamera() { if(scannerIsRunning && html5QrCode) { html5QrCode.stop(); scannerIsRunning = false; } document.getElementById('scanner-modal').classList.add('hidden'); document.getElementById('scanner-modal').classList.remove('flex');}
 async function onScanSuccess(t) { 
     fecharCamera(); 
     if (modoScanAtual === 'pesquisar') { trocarAba('consultar'); document.getElementById('ean-busca').value = t; pesquisarPrecos(); 
     } else { 
         trocarAba('registrar'); 
         document.getElementById('registrar-home').classList.add('hidden'); document.getElementById('price-form-section').classList.remove('hidden'); 
-        const container = document.getElementById('registrar-container');
-        container.classList.remove('h-full', 'justify-center'); container.classList.add('pb-12');
         document.getElementById('ean-field').value = t; document.getElementById('product-name').value = "Buscando..."; 
         try { 
             const res = await fetch(`${APPS_SCRIPT_URL}?ean=${t}`, { redirect: 'follow' }); const data = await res.json(); 
@@ -408,7 +378,7 @@ async function onScanSuccess(t) {
 
 async function salvarPreco(e) { 
     e.preventDefault(); const p = { ean: document.getElementById('ean-field').value, produto: document.getElementById('product-name').value, preco: document.getElementById('price').value, mercado: document.getElementById('market').value, usuario: document.getElementById('username').value }; 
-    await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(p), mode: 'no-cors' }); mostrarNotificacao("Salvo!"); setTimeout(() => location.reload(), 1500);
+    await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(p), mode: 'no-cors' }); mostrarNotificacao("Salvo com sucesso!"); setTimeout(() => location.reload(), 1500);
 }
 
 function comprimirImagem(file) { return new Promise((resolve) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = (e) => { const img = new Image(); img.src = e.target.result; img.onload = () => { const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); const scale = 800 / img.width; canvas.width = 800; canvas.height = img.height * scale; ctx.drawImage(img, 0, 0, canvas.width, canvas.height); resolve(canvas.toDataURL('image/jpeg', 0.6)); }; }; }); }
@@ -419,7 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputChat = document.getElementById('chat-input');
     if(inputChat) { inputChat.addEventListener('keypress', function (e) { if (e.key === 'Enter') { enviarMensagemGemini(); } }); }
     const btnFoto = document.getElementById('btn-camera-foto'); const inputFoto = document.getElementById('input-foto-produto'); const imgPreview = document.getElementById('preview-imagem'); const urlField = document.getElementById('image-url-field');
-    if(btnFoto && inputFoto) { btnFoto.addEventListener('click', () => inputFoto.click()); inputFoto.addEventListener('change', async (e) => { if(e.target.files && e.target.files[0]) { const file = e.target.files[0]; btnFoto.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>'; try { const base64 = await comprimirImagem(file); imgPreview.src = base64; imgPreview.classList.remove('hidden'); btnFoto.classList.add('hidden'); urlField.value = base64; } catch(err) { mostrarNotificacao("Erro na foto", "erro"); btnFoto.innerHTML = '<i class="fas fa-camera text-slate-400 text-2xl mb-1"></i><span class="text-[9px] text-slate-400 font-bold uppercase">Foto</span>'; } } }); }
+    if(btnFoto && inputFoto) { btnFoto.addEventListener('click', () => inputFoto.click()); inputFoto.addEventListener('change', async (e) => { if(e.target.files && e.target.files[0]) { const file = e.target.files[0]; btnFoto.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>'; try { const base64 = await comprimirImagem(file); imgPreview.src = base64; imgPreview.classList.remove('hidden'); btnFoto.classList.add('hidden'); urlField.value = base64; } catch(err) { mostrarNotificacao("Erro na foto", "erro"); btnFoto.innerHTML = '<i class="fas fa-camera text-emerald-400 text-xl mb-1"></i><span class="text-[8px] text-emerald-400 font-bold uppercase tracking-wider">Foto</span>'; } } }); }
     const f = document.getElementById('filtro-mercado-catalogo'); if(f) { f.addEventListener('change', () => { const v = f.value; if(v === 'todos') atualizarListaCatalogo(catalogoDados); else atualizarListaCatalogo(catalogoDados.filter(i => i.mercado === v)); }); }
     if(document.getElementById('btn-pesquisar')) { document.getElementById('btn-pesquisar').addEventListener('click', pesquisarPrecos); }
     if(document.getElementById('price-form')) { document.getElementById('price-form').addEventListener('submit', salvarPreco); }
