@@ -1,98 +1,117 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap');
+/* style.css - v60.0 (Ousadia Neubrutalista Tropical Cyber) */
+
+/* Fonte blocky e moderna: Syne (Mude no index.html também!) */
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&display=swap');
 
 :root {
-    --neon-green: #10b981;
-    --dark-obsidian: #030712;
-    --panel-bg: rgba(17, 24, 39, 0.7);
+    --kalango-orange: #ff5722;
+    --electric-blue: #2979ff;
+    --cyber-yellow: #ffeb3b;
+    --pure-black: #000000;
+    --neubrutal-bg: #fdfdfd;
+    --border-thick: 2px solid #000;
+    --shadow-flat: 5px 5px 0px #000000;
 }
 
 body { 
-    /* Fonte mais moderna e limpa, muito usada em Fintechs */
-    font-family: 'Plus Jakarta Sans', sans-serif; 
-    background-color: var(--dark-obsidian);
-    color: #f8fafc;
+    font-family: 'Syne', sans-serif; 
+    background-color: var(--neubrutal-bg);
+    color: var(--pure-black);
     overflow: hidden;
+    letter-spacing: -0.5px;
 }
 
-/* Fundo Escuro Profundo com Glow Sutil (Garante que não fica branco no celular) */
+/* Fundo limpo para destacar imagens, sem borrões mobile */
 .cyber-bg {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background-color: var(--dark-obsidian);
-    background-image: 
-        radial-gradient(circle at 15% 0%, rgba(16, 185, 129, 0.15) 0%, transparent 40%),
-        radial-gradient(circle at 85% 100%, rgba(16, 185, 129, 0.1) 0%, transparent 40%);
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: var(--neubrutal-bg);
     z-index: -1;
 }
 
-/* Vidro Polido (Glassmorphism de Alta Qualidade) */
+/* Painéis Neubrutalistas (Contorno grosso, sombra flat) */
 .glass-panel {
-    background: var(--panel-bg);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-    border-radius: 24px;
+    background: #ffffff;
+    border: var(--border-thick);
+    box-shadow: var(--shadow-flat);
+    border-radius: 8px; /* Cantos menos arredondados, mais duros */
 }
 
-/* Título Premium */
+/* Título Premium e Blocky */
 .titulo-futurista {
-    color: #ffffff;
-    text-shadow: 0 0 20px rgba(16,185,129,0.4);
-    letter-spacing: -0.5px;
+    color: var(--pure-black);
+    font-weight: 800;
+    text-transform: uppercase;
 }
 
 /* Botões Modernos e Minimalistas */
 .btn-cyber {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
-    font-weight: 700;
+    background: var(--kalango-orange);
+    color: var(--pure-black);
+    font-weight: 800;
+    text-transform: uppercase;
     letter-spacing: 1px;
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-    transition: all 0.2s ease;
-    border: none;
+    border: var(--border-thick);
+    box-shadow: var(--shadow-flat);
+    transition: all 0.1s ease;
 }
 .btn-cyber:active {
-    transform: scale(0.96);
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+    transform: translate(3px, 3px);
+    box-shadow: 2px 2px 0px #000;
 }
 
-/* Barra de Navegação Flutuante */
+/* Barra de Navegação stark e geométrica */
 .nav-island {
-    background: rgba(3, 7, 18, 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 100px;
-    box-shadow: 0 -5px 25px rgba(0,0,0,0.5);
+    background: #ffffff;
+    border: var(--border-thick);
+    box-shadow: var(--shadow-flat);
+    border-radius: 12px;
+}
+.nav-btn.active-tab {
+    color: var(--pure-black);
+    background-color: var(--cyber-yellow);
+    border: var(--border-thick);
+    border-radius: 8px;
 }
 
-/* CHAT: Balões Refinados */
+/* CHAT: Balões Neubrutalistas (Cores saturadas) */
 .chat-user {
     align-self: flex-end; 
-    background: linear-gradient(135deg, #10b981, #047857);
+    background: var(--electric-blue);
     color: white; 
-    border-radius: 20px 20px 4px 20px;
-    padding: 14px 18px; 
-    max-width: 85%; 
-    box-shadow: 0 4px 15px rgba(16,185,129,0.2);
-    font-weight: 500;
+    border: var(--border-thick);
+    border-radius: 12px 12px 4px 12px;
+    padding: 14px; max-width: 85%; 
+    box-shadow: var(--shadow-flat);
 }
 .chat-ai {
     align-self: flex-start; 
-    background: rgba(31, 41, 55, 0.6);
-    backdrop-filter: blur(12px);
-    color: #e2e8f0; 
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 20px 20px 20px 4px;
-    padding: 14px 18px; 
-    max-width: 90%; 
+    background: #ffffff;
+    color: var(--pure-black); 
+    border: var(--border-thick);
+    border-radius: 12px 12px 12px 4px;
+    padding: 14px; max-width: 90%; 
+    box-shadow: var(--shadow-flat);
 }
+#chat-spacer { display: none; }
+
+/* PRODUTO CARD (Com IMAGEM central) */
+.produto-card {
+    display: flex; gap: 14px; align-items: center;
+    background: #ffffff; border: var(--border-thick); 
+    box-shadow: var(--shadow-flat); border-radius: 8px; padding: 12px;
+}
+.produto-img-wrapper {
+    width: 64px; h-64px; min-width: 64px; height: 64px; min-height: 64px;
+    border: var(--border-thick); border-radius: 6px; overflow: hidden;
+    background-color: #f1f1f1;
+}
+.produto-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Espectrograma Modo Voz */
+#spectrogram { gap: 4px; }
+.wave-bar { background-color: var(--kalango-orange); }
 
 /* Utilitários */
-.animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(15px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+.animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 ::-webkit-scrollbar { display: none; }
