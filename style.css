@@ -1,89 +1,98 @@
-/* Custom CSS - Visual Premium Kalango */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700;900&display=swap');
+
+:root {
+    --neon-green: #10b981;
+    --neon-blue: #3b82f6;
+    --cyber-dark: #020617;
+    --glass: rgba(15, 23, 42, 0.6);
+}
 
 body { 
-    font-family: 'Inter', sans-serif; 
-    background-color: #0b1120; /* Fundo um pouco mais escuro para destacar o neon */
+    font-family: 'Space Grotesk', sans-serif; 
+    background-color: var(--cyber-dark);
+    color: #f8fafc;
+    overflow: hidden;
 }
 
-h1.gradient-text {
-    background: linear-gradient(135deg, #10b981, #3b82f6);
+/* Fundo Futurista Animado */
+.cyber-bg {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle at 50% -20%, #064e3b 0%, transparent 50%),
+                radial-gradient(circle at -10% 50%, #1e1b4b 0%, transparent 40%),
+                radial-gradient(circle at 110% 80%, #022c22 0%, transparent 40%);
+    z-index: -1;
+    filter: contrast(1.1);
+}
+
+/* Painéis Estilo Vidro (Glassmorphism) */
+.glass-panel {
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Título Metálico */
+.titulo-futurista {
+    background: linear-gradient(to bottom, #fff 30%, #10b981 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 10px rgba(16,185,129,0.3));
 }
 
-/* Animação de entrada suave */
-.animate-fade-in {
-    animation: fadeIn 0.4s ease-out forwards;
+/* Botões Cyberpunk */
+.btn-cyber {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid var(--neon-green);
+    color: var(--neon-green);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
 }
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Botões com Efeito Neon e Glow */
-.btn-neon {
-    background: linear-gradient(135deg, #10b981, #059669);
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
-    transition: all 0.3s ease;
-}
-.btn-neon:hover {
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
-    transform: translateY(-2px);
+.btn-cyber:active {
+    background: var(--neon-green);
+    color: white;
+    box-shadow: 0 0 20px var(--neon-green);
+    transform: scale(0.98);
 }
 
-/* Glassmorphism (Efeito Vidro) */
-.glass-panel {
-    background: rgba(30, 41, 59, 0.7);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+/* Barra de Navegação Inferior (Ilha) */
+.nav-island {
+    background: rgba(2, 6, 23, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(16, 185, 129, 0.15);
+    border-radius: 36px;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
 }
 
-/* --- CHAT PREMIUM --- */
+/* CHAT: Estilos Futuristas */
 .chat-user {
     align-self: flex-end; 
-    background: linear-gradient(135deg, #10b981, #047857); /* Gradiente Verde */
+    background: linear-gradient(135deg, #10b981, #047857);
     color: white; 
     border-radius: 20px 20px 4px 20px;
     padding: 12px 16px; 
     max-width: 85%; 
-    margin-left: auto; 
-    text-align: right; 
-    box-shadow: 0 4px 15px rgba(16,185,129,0.3); /* Sombra Neon */
+    box-shadow: 0 4px 15px rgba(16,185,129,0.3);
     font-weight: 500;
 }
-
 .chat-ai {
     align-self: flex-start; 
-    background: rgba(30, 41, 59, 0.8); /* Fundo Vidro Escuro */
+    background: var(--glass);
     backdrop-filter: blur(10px);
     color: #f8fafc; 
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px 20px 20px 4px; 
+    border-radius: 20px 20px 20px 4px;
     padding: 12px 16px; 
     max-width: 90%; 
-    margin-right: auto; 
-    text-align: left; 
-    line-height: 1.6;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 
-/* Animação do microfone ouvindo */
-.mic-listening {
-    animation: pulse-red 1.5s infinite;
-}
-@keyframes pulse-red {
-    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-    70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-}
-
-/* Ocultar barra de rolagem mas manter funcionamento */
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-/* --- ANIMAÇÕES DO MODO VOZ --- */
+/* --- ANIMAÇÕES DO MODO VOZ (Espectrograma) --- */
 .wave-bar {
     animation: wave 1s ease-in-out infinite alternate;
     transform-origin: bottom;
@@ -110,45 +119,10 @@ h1.gradient-text {
     100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }
 
-/* --- VISUAL PREMIUM 2.0 (GLASSMORPHISM) --- */
-
-/* Fundo Escuro com Movimento Suave */
-.bg-animated {
-    background: linear-gradient(-45deg, #0b1120, #064e3b, #0f172a, #022c22);
-    background-size: 400% 400%;
-    animation: gradientBG 20s ease infinite;
+/* Utilitários Gerais */
+.animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
-
-@keyframes gradientBG {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-/* Cards com Efeito Vidro (Para os produtos e carrinho) */
-.glass-card {
-    background: rgba(30, 41, 59, 0.4) !important; /* Fundo semi-transparente */
-    backdrop-filter: blur(16px) !important;
-    -webkit-backdrop-filter: blur(16px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.05) !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.1) !important; /* Brilho superior */
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2) !important;
-    border-radius: 1rem !important;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.glass-card:active {
-    transform: scale(0.98);
-}
-
-/* Barra de Navegação Flutuante (Estilo iPhone) */
-.floating-nav {
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 24px;
-    margin: 0 16px 16px 16px; /* Descola da borda da tela */
-    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-    padding: 8px 0;
-}
+::-webkit-scrollbar { display: none; }
