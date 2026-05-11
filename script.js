@@ -1,4 +1,4 @@
-// script.js - v90.0 (Splash Screen, FlexFix e Perfil Seguro)
+// script.js - v91.0 (Bugfix Viewport e Splash)
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxjbwSid8YPyGIg44ToWcQvGIv_5ibBLLVpHAS6K3HIRmo_x4GcucDBamlGGyd9XNMH/exec'; 
 
@@ -25,7 +25,7 @@ let historicoChat = JSON.parse(localStorage.getItem('kalango_chat_history')) || 
 const FallbackImage = 'logokalango.png';
 
 // =========================================================================
-// SPLASH SCREEN (INTRO 3 SEGUNDOS)
+// SPLASH SCREEN (INTRO)
 // =========================================================================
 window.addEventListener('load', () => {
     setTimeout(() => {
@@ -33,29 +33,46 @@ window.addEventListener('load', () => {
         if (splash) {
             splash.classList.add('opacity-0');
             setTimeout(() => {
-                splash.remove(); // Remove o elemento da tela
-                // Se já estiver logado, garante que o layout principal apareça
+                splash.remove(); 
                 if(currentUser) mostrarInterfacePrincipal();
                 else mostrarTelaLogin();
             }, 700);
         }
-    }, 3000); // 3 Segundos exatos
+    }, 3000); // 3 Segundos
 });
 
 function mostrarInterfacePrincipal() {
-    document.getElementById('login-screen').classList.add('hidden'); 
-    document.getElementById('main-header').classList.remove('hidden');
-    document.getElementById('app-content').classList.remove('hidden'); 
-    document.getElementById('app-content').classList.add('flex');
+    const login = document.getElementById('login-screen');
+    if(login) login.classList.add('hidden'); 
+    
+    const header = document.getElementById('main-header');
+    if(header) header.classList.remove('hidden');
+    
+    // A CORREÇÃO ESTÁ AQUI: Procurando a caixa correta
+    const main = document.getElementById('main-container');
+    if(main) {
+        main.classList.remove('hidden'); 
+        main.classList.add('flex');
+    }
+    
     trocarAba('chat');
 }
 
 function mostrarTelaLogin() {
-    document.getElementById('login-screen').classList.remove('hidden');
-    document.getElementById('login-screen').classList.remove('opacity-0');
-    document.getElementById('main-header').classList.add('hidden');
-    document.getElementById('app-content').classList.add('hidden'); 
-    document.getElementById('app-content').classList.remove('flex');
+    const login = document.getElementById('login-screen');
+    if(login) {
+        login.classList.remove('hidden');
+        login.classList.remove('opacity-0');
+    }
+    
+    const header = document.getElementById('main-header');
+    if(header) header.classList.add('hidden');
+    
+    const main = document.getElementById('main-container');
+    if(main) {
+        main.classList.add('hidden'); 
+        main.classList.remove('flex');
+    }
 }
 
 // =========================================================================
@@ -79,14 +96,16 @@ async function trocarAba(aba) {
     if (scannerIsRunning) fecharCamera(); 
     
     abas.forEach(a => { 
-        document.getElementById(a + '-container').classList.add('hidden'); 
+        const container = document.getElementById(a + '-container');
+        if(container) container.classList.add('hidden'); 
         const nav = document.getElementById('nav-' + a);
         if(nav) nav.classList.remove('active-tab'); 
     }); 
     
-    document.getElementById(aba + '-container').classList.remove('hidden'); 
-    const navAba = document.getElementById('nav-' + aba);
-    if(navAba) navAba.classList.add('active-tab'); 
+    const containerAtivo = document.getElementById(aba + '-container');
+    if(containerAtivo) containerAtivo.classList.remove('hidden'); 
+    const navAtivo = document.getElementById('nav-' + aba);
+    if(navAtivo) navAtivo.classList.add('active-tab'); 
     
     const sidebar = document.getElementById('sidebar');
     if (sidebar && !sidebar.classList.contains('-translate-x-full')) toggleMenu(); 
@@ -98,7 +117,6 @@ async function trocarAba(aba) {
 // =========================================================================
 // MODO VOZ E AZURE
 // =========================================================================
-
 let kalangoAudioAtual = null; let modoVozAtivo = false;
 function abrirModoVoz() { modoVozAtivo = true; document.getElementById('voice-mode-overlay').classList.remove('hidden'); document.getElementById('voice-mode-overlay').classList.add('flex'); iniciarGravacaoVoz(); }
 function fecharModoVoz() { modoVozAtivo = false; document.getElementById('voice-mode-overlay').classList.add('hidden'); document.getElementById('voice-mode-overlay').classList.remove('flex'); if (kalangoAudioAtual) { kalangoAudioAtual.pause(); kalangoAudioAtual.currentTime = 0; } }
@@ -150,7 +168,7 @@ async function processarMensagemVoz(txt) {
     } catch (e) { statusText.textContent = "Erro de rede"; }
 }
 
-function rolarChatParaFim() { const area = document.getElementById('chat-messages'); area.scrollTop = area.scrollHeight; }
+function rolarChatParaFim() { const area = document.getElementById('chat-messages'); if(area) area.scrollTop = area.scrollHeight; }
 
 async function enviarMensagemGemini() {
     const input = document.getElementById('chat-input'); const area = document.getElementById('chat-messages'); const txt = input.value.trim();
@@ -162,7 +180,8 @@ async function enviarMensagemGemini() {
     try {
         const fetchUrl = `${APPS_SCRIPT_URL}?acao=chatGemini&pergunta=${encodeURIComponent(txt)}&nome=${encodeURIComponent(userName)}&historico=${encodeURIComponent(historicoChat.slice(-6).join("\n"))}`;
         const res = await fetch(fetchUrl, { redirect: 'follow' }); const data = await res.json();
-        document.getElementById(id).remove(); let respostaFinal = data.resposta || "Sem resposta.";
+        const loadDiv = document.getElementById(id); if(loadDiv) loadDiv.remove(); 
+        let respostaFinal = data.resposta || "Sem resposta.";
         historicoChat.push("Kalango: " + respostaFinal.replace(/\|\|ADD:(.*?)\|\|/g, "")); localStorage.setItem('kalango_chat_history', JSON.stringify(historicoChat));
         const comandoAdd = respostaFinal.match(/\|\|ADD:(.*?)\|\|/);
         if (comandoAdd && comandoAdd[1]) {
@@ -172,42 +191,36 @@ async function enviarMensagemGemini() {
         }
         falarComVozDoKalango(respostaFinal, false);
         area.innerHTML += `<div class="chat-ai animate-fade-in">${respostaFinal.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')}</div>`;
-    } catch (e) { document.getElementById(id).remove(); area.innerHTML += `<div class="chat-ai text-red-500"><i class="fas fa-exclamation-triangle"></i> Erro.</div>`; }
+    } catch (e) { const loadDiv = document.getElementById(id); if(loadDiv) loadDiv.remove(); area.innerHTML += `<div class="chat-ai text-red-500"><i class="fas fa-exclamation-triangle"></i> Erro.</div>`; }
     rolarChatParaFim();
 }
 
 // =========================================================================
 // INICIALIZAÇÃO DE LOGIN
 // =========================================================================
-
 function fazerLoginGoogle() { const provider = new firebase.auth.GoogleAuthProvider(); auth.signInWithPopup(provider).catch(() => auth.signInWithRedirect(provider)); }
 
 auth.onAuthStateChanged((user) => { 
     if (user) { 
         currentUser = user; 
-        
         try {
             const nomeCompleto = user.displayName || "Usuário";
             const primeiroNome = nomeCompleto.split(' ')[0];
             const foto = user.photoURL || FallbackImage;
             
-            // Popula os dados visuais
-            document.getElementById('user-name-display').textContent = primeiroNome + "!"; 
-            document.getElementById('user-avatar').src = foto; 
-            document.getElementById('header-name').textContent = primeiroNome;
-            document.getElementById('header-avatar').src = foto;
-            document.getElementById('username').value = nomeCompleto;
-
+            const sideName = document.getElementById('user-name-display'); if(sideName) sideName.textContent = primeiroNome + "!"; 
+            const sideAvatar = document.getElementById('user-avatar'); if(sideAvatar) sideAvatar.src = foto; 
+            
+            const headerName = document.getElementById('header-name'); if(headerName) headerName.textContent = primeiroNome;
+            const headerAvatar = document.getElementById('header-avatar'); if(headerAvatar) headerAvatar.src = foto;
+            const usernameInput = document.getElementById('username'); if(usernameInput) usernameInput.value = nomeCompleto;
         } catch (erro) { console.error("Erro perfil:", erro); }
 
         atualizarContadorCarrinho(); 
         carregarCatalogo(); 
 
-        // Se a Splash Screen já tiver saído, mostra logo a interface
         const splash = document.getElementById('splash-screen');
-        if(!splash) {
-            mostrarInterfacePrincipal();
-        }
+        if(!splash) mostrarInterfacePrincipal();
 
     } else { 
         currentUser = null; 
@@ -236,7 +249,7 @@ function abrirModalLimpeza() { if(confirm("Esvaziar o carrinho?")) { limparCarri
 async function carregarCatalogo() { try { const r = await fetch(`${APPS_SCRIPT_URL}?acao=listarCatalogo`, { redirect: 'follow' }); const d = await r.json(); catalogoDados = d.catalogo || []; atualizarListaCatalogo(catalogoDados); } catch(e) {} }
 
 function atualizarListaCatalogo(d) { 
-    const l = document.getElementById('lista-catalogo'); l.innerHTML = ''; 
+    const l = document.getElementById('lista-catalogo'); if(!l) return; l.innerHTML = ''; 
     d.forEach(i => { l.innerHTML += `<div class="app-card p-3 mb-3 flex justify-between items-center animate-fade-in gap-3"><div class="produto-img-wrapper"><img src="${i.imagem || FallbackImage}" onerror="this.src='${FallbackImage}'"></div><div class="flex-1 flex justify-between items-center overflow-hidden"><div class="w-[55%] pr-2"><b class="text-slate-800 text-sm block truncate mb-0.5">${i.produto}</b><span class="text-[10px] text-slate-500 font-bold bg-slate-100 px-1.5 py-0.5 rounded">${i.mercado}</span></div><div class="text-right shrink-0"><span class="text-emerald-600 font-black block text-xl mb-1">R$ ${i.preco.toFixed(2)}</span><button onclick="adicionarAoCarrinho('${i.produto.replace(/'/g, "\\'")}',${i.preco},'${i.mercado.replace(/'/g, "\\'")}', '${i.imagem}')" class="bg-emerald-50 text-emerald-600 font-bold px-3 py-1 rounded-lg text-xs w-full hover:bg-emerald-100">+ Add</button></div></div></div>`; }); 
 }
 
