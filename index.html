@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kalango - Smart Prices</title>
+    <title>Kalango Live - Luís Gomes</title>
     
     <link rel="icon" type="image/png" href="logokalango.png">
     
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&display=swap" rel="stylesheet">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -18,95 +18,92 @@
 
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="h-screen flex flex-col overflow-hidden select-none text-slate-200 relative">
+<body class="h-screen flex flex-col overflow-hidden select-none relative">
 
     <div class="cyber-bg"></div>
 
-    <div id="login-screen" class="fixed inset-0 z-[100] flex flex-col items-center justify-center p-6 bg-[#030712] transition-all duration-500">
-        <div class="glass-panel p-10 rounded-[32px] w-full max-w-sm text-center border border-white/5 shadow-2xl">
-            <img src="logokalango.png" alt="Kalango" class="w-32 h-32 mx-auto mb-6 drop-shadow-[0_0_20px_rgba(16,185,129,0.4)]">
-            <h2 class="text-3xl font-extrabold mb-1 titulo-futurista tracking-tight">KALANGO</h2>
-            <p class="text-slate-400 text-sm mb-10">O futuro das compras em Luís Gomes</p>
+    <div id="login-screen" class="fixed inset-0 z-[100] flex flex-col items-center justify-center p-6 bg-[#fdfdfd] transition-all duration-500">
+        <div class="glass-panel p-10 w-full max-w-sm text-center">
+            <img src="logokalango.png" alt="Kalango" class="w-32 h-32 mx-auto mb-6">
+            <h2 class="text-3xl font-extrabold mb-1 titulo-futurista">KALANGO</h2>
+            <span class="text-[10px] tracking-[4px] text-emerald-600 font-bold uppercase mb-10 block">Smart Prices</span>
             
-            <button onclick="fazerLoginGoogle()" class="w-full bg-white text-black font-bold py-4 px-6 rounded-2xl flex items-center justify-center gap-3 transition-all hover:bg-emerald-50 active:scale-95 shadow-xl">
+            <button onclick="fazerLoginGoogle()" class="w-full btn-cyber py-4 px-6 rounded-lg flex items-center justify-center gap-3 transition-all">
                 <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-6 h-6" alt="G">
-                Aceder com Google
+                Entrar com Google
             </button>
         </div>
     </div>
 
-    <div id="voice-mode-overlay" class="fixed inset-0 z-[110] bg-[#030712]/fb backdrop-blur-3xl hidden flex-col items-center justify-center transition-all">
-        <button onclick="fecharModoVoz()" class="absolute top-10 left-6 w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-slate-400 border border-white/10 transition-colors">
-            <i class="fas fa-times text-xl"></i>
+    <div id="voice-mode-overlay" class="fixed inset-0 z-[110] bg-[#fdfdfd]/fb hidden flex-col items-center justify-center transition-all">
+        <button onclick="fecharModoVoz()" class="absolute top-10 left-6 w-12 h-12 glass-panel rounded-full flex items-center justify-center text-slate-400 transition-colors">
+            <i class="fas fa-times text-xl text-black"></i>
         </button>
 
-        <div class="relative mb-12">
-            <div id="voice-avatar-glow" class="absolute -inset-6 bg-emerald-500/10 blur-[60px] rounded-full animate-pulse"></div>
-            <img src="logokalango.png" class="w-52 h-52 object-contain relative z-10 drop-shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+        <img src="logokalango.png" class="w-52 h-52 object-contain relative z-10 mb-12">
+
+        <h2 id="voice-status" class="text-2xl font-bold text-black mb-14 tracking-tight">Ouvindo...</h2>
+
+        <div id="spectrogram" class="flex items-end justify-center gap-2.5 h-28 opacity-0 transition-opacity duration-300">
+            <div class="wave-bar h-6 w-3.5 bg-emerald-400 rounded-full"></div>
+            <div class="wave-bar h-12 w-3.5 bg-emerald-500 rounded-full"></div>
+            <div class="wave-bar h-20 w-3.5 bg-teal-400 rounded-full"></div>
+            <div class="wave-bar h-14 w-3.5 bg-emerald-400 rounded-full"></div>
+            <div class="wave-bar h-8 w-3.5 bg-teal-500 rounded-full"></div>
         </div>
 
-        <h2 id="voice-status" class="text-2xl font-bold text-white mb-14 tracking-tight">Ouvindo...</h2>
-
-        <div id="spectrogram" class="flex items-end justify-center gap-3 h-28 opacity-0 transition-opacity duration-300">
-            <div class="wave-bar h-6 w-4 bg-emerald-400 rounded-full"></div>
-            <div class="wave-bar h-12 w-4 bg-emerald-500 rounded-full"></div>
-            <div class="wave-bar h-20 w-4 bg-emerald-600 rounded-full"></div>
-            <div class="wave-bar h-14 w-4 bg-emerald-500 rounded-full"></div>
-            <div class="wave-bar h-8 w-4 bg-emerald-400 rounded-full"></div>
-        </div>
-
-        <button id="btn-central-mic" onclick="iniciarGravacaoVoz()" class="mt-20 w-24 h-24 btn-cyber rounded-full flex items-center justify-center text-white text-4xl shadow-[0_0_50px_rgba(16,185,129,0.4)]">
+        <button id="btn-central-mic" onclick="iniciarGravacaoVoz()" class="mt-20 w-24 h-24 btn-cyber rounded-full flex items-center justify-center text-black text-4xl shadow-[0_0_50px_rgba(16,185,129,0.3)]">
             <i class="fas fa-microphone"></i>
         </button>
     </div>
 
     <div id="app-content" class="hidden flex-col h-full w-full relative z-10">
         
-        <header class="p-6 flex justify-between items-center">
+        <header class="p-6 flex justify-between items-center z-10">
             <div class="flex items-center gap-3">
                 <img src="logokalango.png" class="h-10 w-auto">
                 <div>
-                    <h1 class="titulo-futurista text-xl font-extrabold leading-none">KALANGO</h1>
-                    <span class="text-[9px] tracking-[3px] text-emerald-500 font-bold uppercase">Luís Gomes • RN</span>
+                    <h1 class="titulo-futurista text-xl leading-none">KALANGO</h1>
+                    <span class="text-[9px] tracking-[3px] text-emerald-600 font-bold uppercase">Luís Gomes • RN</span>
                 </div>
             </div>
-            <div id="user-profile" class="hidden items-center gap-2 bg-white/5 p-1 pr-4 rounded-full border border-white/5">
-                <img id="user-avatar" class="w-8 h-8 rounded-full border border-emerald-500/30">
-                <span id="user-name-display" class="text-[11px] font-bold text-white">...</span>
+            <div id="user-profile" class="hidden items-center gap-2 glass-panel p-1 pr-3 rounded-full">
+                <img id="user-avatar" class="w-7 h-7 rounded-full border border-black/10">
+                <span id="user-name-display" class="text-[10px] font-bold text-black">...</span>
             </div>
         </header>
 
         <main id="main-container" class="flex-1 overflow-y-auto px-4 pb-32">
             
-            <div id="chat-container" class="h-full flex flex-col hidden animate-fade-in">
-                <div id="chat-messages" class="flex-1 overflow-y-auto p-2 flex flex-col gap-4">
+            <div id="chat-container" class="h-full flex flex-col hidden animate-fade-in pt-2">
+                <div id="chat-messages" class="flex-1 overflow-y-auto p-2 flex flex-col gap-4 pb-20">
                     <div class="chat-ai shadow-lg">
-                        <b class="text-emerald-400 block mb-1">Olá!</b> 
-                        Sou o seu assistente inteligente. Como posso ajudar com as compras em Luís Gomes hoje? 🦎
+                        <b class="text-lg block mb-1">E aí!</b> 
+                        Sou o Kalango, sua inteligência de compras. Fala comigo que eu te ajudo a economizar em Luís Gomes! 🦎
                     </div>
                 </div>
                 
-                <div class="fixed bottom-[94px] left-4 right-4 z-[45]">
-                    <div class="glass-panel p-2 flex items-center gap-3 bg-[#111827]/95 border border-white/10 shadow-2xl">
-                        <button onclick="abrirModoVoz()" class="w-12 h-12 rounded-full flex items-center justify-center text-slate-400 bg-white/5 transition-colors">
+                <div class="fixed bottom-[110px] left-4 right-4 z-[45]">
+                    <div class="glass-panel p-2 flex items-center gap-3 bg-white border border-black shadow-lg">
+                        <button onclick="abrirModoVoz()" class="w-12 h-12 rounded flex items-center justify-center text-slate-600 bg-[#f1f1f1] hover:bg-emerald-100 transition-colors">
                             <i class="fas fa-microphone text-lg"></i>
                         </button>
-                        <input type="text" id="chat-input" placeholder="Pergunte ao Kalango..." class="flex-1 bg-transparent text-white font-medium outline-none text-sm placeholder-slate-500">
-                        <button id="btn-enviar-chat" class="w-12 h-12 btn-cyber rounded-full flex items-center justify-center text-white">
+                        <input type="text" id="chat-input" placeholder="Mande sua dúvida pro Kalango..." class="flex-1 bg-transparent text-black font-bold outline-none text-sm placeholder-slate-500">
+                        <button id="btn-enviar-chat" class="w-12 h-12 btn-cyber rounded flex items-center justify-center text-pure-black">
                             <i class="fas fa-paper-plane text-sm"></i>
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div id="registrar-container" class="h-full flex flex-col items-center justify-center hidden animate-fade-in">
+            <div id="registrar-container" class="h-full flex flex-col items-center justify-center hidden animate-fade-in pt-10">
                 <div id="registrar-home" class="text-center w-full max-w-xs">
-                    <div class="glass-panel w-32 h-32 rounded-3xl flex items-center justify-center mx-auto mb-8 bg-emerald-500/5 border-emerald-500/20">
-                        <i class="fas fa-barcode text-5xl text-emerald-500"></i>
+                    <div class="glass-panel w-32 h-32 rounded flex items-center justify-center mx-auto mb-8 bg-[#f1f1f1]">
+                        <i class="fas fa-camera text-5xl text-black"></i>
                     </div>
-                    <h2 class="text-2xl font-bold mb-3">Colaborar</h2>
-                    <p class="text-slate-400 text-sm mb-10">Encontrou um preço novo? Escaneie e ajude a cidade a economizar.</p>
-                    <button onclick="iniciarCamera('registrar')" class="w-full btn-cyber py-4 rounded-2xl text-base font-bold">
+                    <h2 class="text-2xl font-bold mb-3">Compartilhar Preço</h2>
+                    <p class="text-slate-600 text-sm mb-10">Encontrou uma oferta boa nos mercados da cidade? Clica abaixo para compartilhar com a comunidade!</p>
+                    <button onclick="iniciarCamera('registrar')" class="w-full btn-cyber py-4 rounded text-base font-bold">
                         <i class="fas fa-camera mr-2"></i> Escanear Produto
                     </button>
                 </div>
@@ -114,9 +111,9 @@
                 <div id="price-form-section" class="w-full hidden">
                     <form id="price-form" class="glass-panel p-6 flex flex-col gap-5">
                         <div class="flex justify-between items-center">
-                            <h3 class="font-bold text-lg text-white">Novo Registro</h3>
-                            <div class="w-16 h-16 bg-white/5 rounded-2xl border border-white/10 flex flex-col items-center justify-center relative overflow-hidden" id="btn-camera-foto">
-                                <i class="fas fa-camera text-emerald-500 text-xl"></i>
+                            <h3 class="font-bold text-lg text-black">Novo Registro</h3>
+                            <div class="w-16 h-16 bg-[#f1f1f1] rounded border border-black flex flex-col items-center justify-center relative overflow-hidden" id="btn-camera-foto">
+                                <i class="fas fa-camera text-black text-xl"></i>
                                 <img id="preview-imagem" class="hidden absolute inset-0 w-full h-full object-cover">
                             </div>
                             <input type="file" id="input-foto-produto" accept="image/*" capture="environment" class="hidden">
@@ -125,71 +122,68 @@
                         <input type="hidden" id="image-url-field">
                         
                         <div>
-                            <label class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Produto</label>
-                            <input type="text" id="product-name" class="w-full bg-white/5 border border-white/5 p-4 rounded-xl mt-1 outline-none text-white font-bold" required>
+                            <label class="text-[10px] font-bold text-black uppercase tracking-widest">Produto (Nome Completo)</label>
+                            <input type="text" id="product-name" class="w-full bg-[#f1f1f1] border border-black p-4 rounded mt-1 outline-none text-black font-bold" required>
                         </div>
 
                         <div class="flex gap-4">
                             <div class="flex-1">
-                                <label class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Preço R$</label>
-                                <input type="number" step="0.01" id="price" class="w-full bg-white/5 border border-white/5 p-4 rounded-xl mt-1 outline-none text-emerald-400 font-black" required>
+                                <label class="text-[10px] font-bold text-black uppercase tracking-widest">Preço R$</label>
+                                <input type="number" step="0.01" id="price" class="w-full bg-[#f1f1f1] border border-black p-4 rounded mt-1 outline-none text-black font-black" required>
                             </div>
                             <div class="flex-1">
-                                <label class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Mercado</label>
-                                <select id="market" class="w-full bg-[#030712] border border-white/5 p-4 rounded-xl mt-1 outline-none text-white text-sm"></select>
+                                <label class="text-[10px] font-bold text-black uppercase tracking-widest">Mercado</label>
+                                <select id="market" class="w-full bg-white border border-black p-4 rounded mt-1 outline-none text-black text-sm"></select>
                             </div>
                         </div>
 
                         <input type="hidden" id="ean-field">
-                        <button type="submit" class="w-full btn-cyber py-4 rounded-2xl font-bold mt-2">Confirmar Envio</button>
+                        <button type="submit" class="w-full btn-cyber py-4 rounded font-bold mt-2">Salvar Oferta</button>
                         <button type="button" onclick="location.reload()" class="w-full text-slate-500 font-bold text-xs uppercase tracking-widest mt-2">Cancelar</button>
                     </form>
                 </div>
             </div>
 
             <div id="consultar-container" class="h-full flex flex-col hidden animate-fade-in pt-4">
-                <div class="glass-panel p-2 flex items-center gap-2 mb-6 border-emerald-500/20">
-                    <input type="text" id="ean-busca" placeholder="O que procura?" class="flex-1 bg-transparent text-white p-3 outline-none text-sm">
-                    <button id="btn-pesquisar" class="w-12 h-12 btn-cyber rounded-xl flex items-center justify-center text-white"><i class="fas fa-search"></i></button>
+                <div class="glass-panel p-2 flex items-center gap-2 mb-6 border-black">
+                    <input type="text" id="ean-busca" placeholder="O que você está procurando?" class="flex-1 bg-transparent text-black font-bold p-3 outline-none text-sm">
+                    <button id="btn-pesquisar" class="w-12 h-12 btn-cyber rounded flex items-center justify-center text-black"><i class="fas fa-search"></i></button>
                 </div>
-                <div id="resultados-consulta" class="flex flex-col gap-4"></div>
+                <div id="resultados-consulta" class="flex flex-col gap-4 pb-24"></div>
             </div>
 
             <div id="catalogo-container" class="h-full flex flex-col hidden animate-fade-in pt-4">
                 <div class="flex justify-between items-center mb-6 px-1">
-                    <h2 class="text-xl font-bold text-white">Ofertas do Dia</h2>
-                    <select id="filtro-mercado-catalogo" class="bg-[#030712] border border-white/10 text-white text-[10px] px-3 py-2 rounded-full outline-none font-bold uppercase">
+                    <h2 class="text-xl font-extrabold text-black uppercase titulo-futurista">Ofertas do Dia</h2>
+                    <select id="filtro-mercado-catalogo" class="bg-white border border-black text-black text-[10px] px-3 py-2 rounded outline-none font-bold uppercase">
                         <option value="todos">Todos</option>
                     </select>
                 </div>
-                <div id="lista-catalogo" class="flex flex-col gap-3"></div>
+                <div id="lista-catalogo" class="flex flex-col gap-4 pb-24"></div>
             </div>
 
         </main>
 
-        <nav class="nav-island flex justify-around items-center absolute bottom-5 left-5 right-5 h-[76px] z-50 px-2">
-            <button id="nav-chat" class="flex flex-col items-center gap-1 text-slate-500 w-14" onclick="trocarAba('chat')">
+        <nav class="nav-island flex justify-around items-center absolute bottom-5 left-5 right-5 h-[76px] z-50 p-2">
+            <button id="nav-chat" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-500 w-16 h-16" onclick="trocarAba('chat')">
                 <i class="fas fa-comment-dots text-xl"></i>
                 <span class="text-[8px] font-bold uppercase">IA</span>
             </button>
-            <button id="nav-registrar" class="flex flex-col items-center gap-1 text-slate-500 w-14" onclick="trocarAba('registrar')">
+            <button id="nav-registrar" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-500 w-16 h-16" onclick="trocarAba('registrar')">
                 <i class="fas fa-plus-circle text-xl"></i>
                 <span class="text-[8px] font-bold uppercase">Novo</span>
             </button>
             
-            <div class="relative -top-5">
-                <div class="absolute -inset-3 bg-emerald-500/10 blur-xl rounded-full"></div>
-                <button id="btn-carrinho-flutuante" onclick="toggleCarrinho()" class="w-16 h-16 btn-cyber rounded-full flex items-center justify-center text-white border-4 border-[#030712] relative z-10">
-                    <i class="fas fa-shopping-basket text-xl"></i>
-                    <span id="cart-count" class="absolute -top-1 -right-1 bg-white text-black text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#030712] hidden">0</span>
-                </button>
-            </div>
+            <button id="btn-carrinho-flutuante" onclick="toggleCarrinho()" class="w-18 h-18 btn-cyber rounded flex items-center justify-center text-black border border-black active:scale-95 transition-transform z-10">
+                <i class="fas fa-shopping-basket text-xl"></i>
+                <span id="cart-count" class="absolute top-1 right-1 bg-white text-black text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border border-black hidden">0</span>
+            </button>
 
-            <button id="nav-consultar" class="flex flex-col items-center gap-1 text-slate-500 w-14" onclick="trocarAba('consultar')">
+            <button id="nav-consultar" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-500 w-16 h-16" onclick="trocarAba('consultar')">
                 <i class="fas fa-search text-xl"></i>
                 <span class="text-[8px] font-bold uppercase">Busca</span>
             </button>
-            <button id="nav-catalogo" class="flex flex-col items-center gap-1 text-slate-500 w-14" onclick="trocarAba('catalogo')">
+            <button id="nav-catalogo" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-500 w-16 h-16" onclick="trocarAba('catalogo')">
                 <i class="fas fa-tags text-xl"></i>
                 <span class="text-[8px] font-bold uppercase">Preços</span>
             </button>
@@ -198,36 +192,36 @@
     </div> 
     
     <div id="scanner-modal" class="fixed inset-0 z-[120] bg-black hidden flex-col">
-        <div class="p-6 flex justify-between items-center absolute top-0 w-full z-10">
-            <h3 class="text-white font-bold tracking-tight">Escanear Código</h3>
+        <div class="p-6 flex justify-between items-center absolute top-0 w-full z-10 bg-black/50 backdrop-blur-sm">
+            <h3 class="text-white font-bold tracking-tight titulo-futurista">Escanear Produto</h3>
             <button onclick="fecharCamera()" class="text-white w-10 h-10 bg-white/10 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
         </div>
         <div id="reader" class="w-full h-full"></div>
     </div>
 
-    <div id="cart-modal" class="fixed inset-0 z-[130] bg-black/80 backdrop-blur-sm hidden flex-col justify-end">
-        <div id="cart-content" class="glass-panel w-full h-[80vh] rounded-t-[40px] p-8 flex flex-col transform translate-y-full transition-transform duration-300 bg-[#030712]/95">
-            <div class="flex justify-between items-center mb-8">
-                <h3 class="font-extrabold text-2xl text-white">Carrinho</h3>
+    <div id="cart-modal" class="fixed inset-0 z-[130] bg-[#fdfdfd]/f5 hidden flex-col justify-end transition-opacity">
+        <div id="cart-content" class="glass-panel w-full h-[85vh] rounded-t-[16px] p-8 flex flex-col transform translate-y-full transition-transform duration-300">
+            <div class="flex justify-between items-center mb-8 border-b border-black pb-4">
+                <h3 class="font-black text-2xl text-black">Seu Carrinho Live</h3>
                 <div class="flex gap-3">
-                    <button onclick="abrirModalLimpeza()" class="w-10 h-10 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center"><i class="fas fa-trash-alt text-xs"></i></button>
-                    <button onclick="toggleCarrinho()" class="w-10 h-10 bg-white/5 text-white rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
+                    <button onclick="abrirModalLimpeza()" class="w-10 h-10 bg-red-100 text-red-600 rounded flex items-center justify-center border border-red-500"><i class="fas fa-trash-alt text-xs"></i></button>
+                    <button onclick="toggleCarrinho()" class="w-10 h-10 bg-[#f1f1f1] text-black rounded flex items-center justify-center border border-black"><i class="fas fa-times"></i></button>
                 </div>
             </div>
             
             <div id="cart-items" class="flex-1 overflow-y-auto flex flex-col gap-3"></div>
             
-            <div class="mt-8 pt-6 border-t border-white/5">
+            <div class="mt-8 pt-6 border-t border-black">
                 <div class="flex justify-between items-center mb-6">
-                    <span class="text-slate-400 font-bold uppercase text-xs tracking-widest">Total Estimado</span>
-                    <span id="cart-total-price" class="text-3xl font-black text-emerald-400">R$ 0,00</span>
+                    <span class="text-black font-bold uppercase text-xs tracking-widest">Total Estimado</span>
+                    <span id="cart-total-price" class="text-3xl font-black text-black">R$ 0,00</span>
                 </div>
-                <button onclick="toggleCarrinho()" class="w-full btn-cyber py-5 rounded-2xl text-lg font-bold">Voltar às Compras</button>
+                <button onclick="toggleCarrinho()" class="w-full btn-cyber py-5 rounded-lg text-lg font-bold">Voltar às Compras</button>
             </div>
         </div>
     </div>
 
-    <div id="toast-notification" class="fixed top-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full shadow-2xl z-[200] flex items-center gap-3 font-bold transition-all duration-300 pointer-events-none opacity-0 -translate-y-32">
+    <div id="toast-notification" class="fixed top-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded shadow-2xl z-[200] flex items-center gap-3 font-bold transition-all duration-300 pointer-events-none opacity-0 -translate-y-32 border border-black">
         <span id="toast-icon"></span>
         <span id="toast-message"></span>
     </div>
