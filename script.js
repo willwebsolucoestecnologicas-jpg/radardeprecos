@@ -1,4 +1,4 @@
-// script.js - v80.0 (Clean App, Menu Lateral e Imagens)
+// script.js - v81.0 (Perfil Dinâmico e Chat Inicial)
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxjbwSid8YPyGIg44ToWcQvGIv_5ibBLLVpHAS6K3HIRmo_x4GcucDBamlGGyd9XNMH/exec'; 
 
@@ -25,7 +25,7 @@ let historicoChat = JSON.parse(localStorage.getItem('kalango_chat_history')) || 
 const FallbackImage = 'logokalango.png';
 
 // =========================================================================
-// MENU LATERAL (NOVO)
+// MENU LATERAL E ABAS
 // =========================================================================
 function toggleMenu() {
     const sidebar = document.getElementById('sidebar');
@@ -42,6 +42,28 @@ function toggleMenu() {
         overlay.classList.add('opacity-0');
         setTimeout(() => overlay.classList.add('hidden'), 300);
     }
+}
+
+async function trocarAba(aba) { 
+    const abas = ['registrar', 'consultar', 'catalogo', 'chat']; 
+    if (scannerIsRunning) fecharCamera(); 
+    
+    abas.forEach(a => { 
+        document.getElementById(a + '-container').classList.add('hidden'); 
+        document.getElementById('nav-' + a).classList.remove('active-tab'); 
+    }); 
+    
+    document.getElementById(aba + '-container').classList.remove('hidden'); 
+    document.getElementById('nav-' + aba).classList.add('active-tab'); 
+    
+    // Só tenta fechar o menu se ele estiver realmente aberto na tela
+    const sidebar = document.getElementById('sidebar');
+    if (!sidebar.classList.contains('-translate-x-full')) {
+        toggleMenu(); 
+    }
+    
+    if(aba === 'catalogo') carregarCatalogo(); 
+    if (aba === 'chat') setTimeout(rolarChatParaFim, 100); 
 }
 
 // =========================================================================
@@ -145,22 +167,45 @@ async function enviarMensagemGemini() {
 }
 
 // =========================================================================
-// RENDERIZAÇÃO E APP
+// INICIALIZAÇÃO E APP
 // =========================================================================
 
 function fazerLoginGoogle() { const provider = new firebase.auth.GoogleAuthProvider(); auth.signInWithPopup(provider).catch(() => auth.signInWithRedirect(provider)); }
 
 auth.onAuthStateChanged((user) => { 
     if (user) { 
-        currentUser = user; document.getElementById('login-screen').classList.add('hidden'); 
-        document.getElementById('app-content').classList.remove('hidden'); document.getElementById('app-content').classList.add('flex');
-        document.getElementById('user-name-display').textContent = user.displayName; 
+        currentUser = user; 
+        document.getElementById('login-screen').classList.add('hidden'); 
+        document.getElementById('app-content').classList.remove('hidden'); 
+        document.getElementById('app-content').classList.add('flex');
+        
+        // Pega apenas o primeiro nome do utilizador
+        const primeiroNome = user.displayName.split(' ')[0];
+        
+        // Atualiza a Sidebar
+        document.getElementById('user-name-display').textContent = primeiroNome + "!"; 
         document.getElementById('user-avatar').src = user.photoURL; 
+        
+        // Atualiza a Barra de Topo (Header) com foto e "Olá, Nome!"
+        const headerProfile = document.getElementById('header-profile');
+        if (headerProfile) {
+            headerProfile.classList.remove('hidden');
+            headerProfile.classList.add('flex');
+            document.getElementById('header-name').textContent = primeiroNome;
+            document.getElementById('header-avatar').src = user.photoURL;
+        }
+
         document.getElementById('username').value = user.displayName; 
-        atualizarContadorCarrinho(); carregarCatalogo(); trocarAba('chat');
+        atualizarContadorCarrinho(); 
+        carregarCatalogo(); 
+        
+        // GARANTE QUE O CHAT SEJA A ABA INICIAL E VISÍVEL
+        trocarAba('chat'); 
     } else { 
-        currentUser = null; document.getElementById('login-screen').classList.remove('hidden'); 
-        document.getElementById('app-content').classList.add('hidden'); document.getElementById('app-content').classList.remove('flex');
+        currentUser = null; 
+        document.getElementById('login-screen').classList.remove('hidden'); 
+        document.getElementById('app-content').classList.add('hidden'); 
+        document.getElementById('app-content').classList.remove('flex');
     } 
 });
 
@@ -208,14 +253,6 @@ function renderizarCarrinho() {
     t.textContent = `R$ ${total.toFixed(2)}`; 
 }
 function abrirModalLimpeza() { if(confirm("Esvaziar o carrinho?")) { limparCarrinho(); } }
-
-async function trocarAba(aba) { 
-    const abas = ['registrar', 'consultar', 'catalogo', 'chat']; if (scannerIsRunning) fecharCamera(); 
-    abas.forEach(a => { document.getElementById(a + '-container').classList.add('hidden'); document.getElementById('nav-' + a).classList.remove('active-tab'); }); 
-    document.getElementById(aba + '-container').classList.remove('hidden'); document.getElementById('nav-' + aba).classList.add('active-tab'); 
-    toggleMenu(); // Fecha o menu lateral automaticamente
-    if(aba === 'catalogo') carregarCatalogo(); if (aba === 'chat') setTimeout(rolarChatParaFim, 100); 
-}
 
 async function carregarCatalogo() { try { const r = await fetch(`${APPS_SCRIPT_URL}?acao=listarCatalogo`, { redirect: 'follow' }); const d = await r.json(); catalogoDados = d.catalogo || []; atualizarListaCatalogo(catalogoDados); } catch(e) {} }
 
