@@ -1,117 +1,137 @@
-/* style.css - v60.0 (Ousadia Neubrutalista Tropical Cyber) */
+/* style.css - v70.0 (Holo-Glass Digital) */
 
-/* Fonte blocky e moderna: Syne (Mude no index.html também!) */
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap');
 
 :root {
-    --kalango-orange: #ff5722;
-    --electric-blue: #2979ff;
-    --cyber-yellow: #ffeb3b;
-    --pure-black: #000000;
-    --neubrutal-bg: #fdfdfd;
-    --border-thick: 2px solid #000;
-    --shadow-flat: 5px 5px 0px #000000;
+    --holo-cyan: #00f0ff;
+    --holo-emerald: #00ffa3;
+    --deep-space: #030307;
+    --glass-bg: rgba(10, 15, 30, 0.65);
+    --glass-border: rgba(0, 240, 255, 0.2);
 }
 
 body { 
-    font-family: 'Syne', sans-serif; 
-    background-color: var(--neubrutal-bg);
-    color: var(--pure-black);
+    font-family: 'Rajdhani', sans-serif; 
+    background-color: var(--deep-space);
+    color: #e0e7ff;
     overflow: hidden;
-    letter-spacing: -0.5px;
+    letter-spacing: 0.5px;
 }
 
-/* Fundo limpo para destacar imagens, sem borrões mobile */
+/* Fundo Espacial com Orbes Holográficos (Garante que o vidro brilhe sem lavar a tela) */
 .cyber-bg {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background-color: var(--neubrutal-bg);
+    background-color: var(--deep-space);
     z-index: -1;
+    overflow: hidden;
+}
+.cyber-bg::before {
+    content: ''; position: absolute; top: -20%; left: -20%; width: 60vw; height: 60vw;
+    background: var(--holo-cyan); filter: blur(120px); opacity: 0.15; border-radius: 50%;
+}
+.cyber-bg::after {
+    content: ''; position: absolute; bottom: -20%; right: -20%; width: 60vw; height: 60vw;
+    background: var(--holo-emerald); filter: blur(120px); opacity: 0.1; border-radius: 50%;
 }
 
-/* Painéis Neubrutalistas (Contorno grosso, sombra flat) */
+/* Vidro Holográfico (Holo-Glass) */
 .glass-panel {
-    background: #ffffff;
-    border: var(--border-thick);
-    box-shadow: var(--shadow-flat);
-    border-radius: 8px; /* Cantos menos arredondados, mais duros */
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(0, 240, 255, 0.05);
+    border-radius: 20px;
 }
 
-/* Título Premium e Blocky */
+/* Texto Digital Neon */
 .titulo-futurista {
-    color: var(--pure-black);
-    font-weight: 800;
-    text-transform: uppercase;
-}
-
-/* Botões Modernos e Minimalistas */
-.btn-cyber {
-    background: var(--kalango-orange);
-    color: var(--pure-black);
-    font-weight: 800;
-    text-transform: uppercase;
+    color: #ffffff;
+    text-shadow: 0 0 15px rgba(0, 240, 255, 0.8);
+    font-weight: 700;
     letter-spacing: 1px;
-    border: var(--border-thick);
-    box-shadow: var(--shadow-flat);
-    transition: all 0.1s ease;
+    text-transform: uppercase;
 }
-.btn-cyber:active {
-    transform: translate(3px, 3px);
-    box-shadow: 2px 2px 0px #000;
+.neon-text {
+    color: var(--holo-cyan);
+    text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
 }
 
-/* Barra de Navegação stark e geométrica */
-.nav-island {
-    background: #ffffff;
-    border: var(--border-thick);
-    box-shadow: var(--shadow-flat);
+/* Botões Estilo Interface HUD */
+.btn-cyber {
+    background: linear-gradient(90deg, rgba(0, 240, 255, 0.15), rgba(0, 255, 163, 0.15));
+    border: 1px solid var(--holo-cyan);
+    color: var(--holo-cyan);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.2), inset 0 0 10px rgba(0, 240, 255, 0.1);
+    transition: all 0.3s ease;
     border-radius: 12px;
 }
-.nav-btn.active-tab {
-    color: var(--pure-black);
-    background-color: var(--cyber-yellow);
-    border: var(--border-thick);
-    border-radius: 8px;
+.btn-cyber:active {
+    background: var(--holo-cyan);
+    color: var(--deep-space);
+    box-shadow: 0 0 30px var(--holo-cyan);
+    transform: scale(0.96);
 }
 
-/* CHAT: Balões Neubrutalistas (Cores saturadas) */
+/* Barra de Navegação HUD */
+.nav-island {
+    background: rgba(3, 3, 7, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(0, 240, 255, 0.15);
+    border-radius: 100px;
+    box-shadow: 0 -5px 30px rgba(0,0,0,0.8), 0 0 15px rgba(0, 240, 255, 0.1);
+}
+.nav-btn.active-tab i {
+    color: var(--holo-cyan);
+    text-shadow: 0 0 10px var(--holo-cyan);
+}
+.nav-btn.active-tab span { color: white; }
+
+/* CHAT: Interface de Comunicação */
 .chat-user {
     align-self: flex-end; 
-    background: var(--electric-blue);
-    color: white; 
-    border: var(--border-thick);
-    border-radius: 12px 12px 4px 12px;
-    padding: 14px; max-width: 85%; 
-    box-shadow: var(--shadow-flat);
+    background: rgba(0, 240, 255, 0.15);
+    color: var(--holo-cyan); 
+    border: 1px solid var(--holo-cyan);
+    border-radius: 16px 16px 4px 16px;
+    padding: 12px 16px; max-width: 85%; 
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);
+    font-weight: 500;
 }
 .chat-ai {
     align-self: flex-start; 
-    background: #ffffff;
-    color: var(--pure-black); 
-    border: var(--border-thick);
-    border-radius: 12px 12px 12px 4px;
-    padding: 14px; max-width: 90%; 
-    box-shadow: var(--shadow-flat);
+    background: rgba(255, 255, 255, 0.05);
+    color: #e0e7ff; 
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px 16px 16px 4px;
+    padding: 12px 16px; max-width: 90%; 
+    backdrop-filter: blur(8px);
 }
-#chat-spacer { display: none; }
 
-/* PRODUTO CARD (Com IMAGEM central) */
-.produto-card {
-    display: flex; gap: 14px; align-items: center;
-    background: #ffffff; border: var(--border-thick); 
-    box-shadow: var(--shadow-flat); border-radius: 8px; padding: 12px;
-}
+/* Imagens dos Produtos dentro do Vidro */
 .produto-img-wrapper {
-    width: 64px; h-64px; min-width: 64px; height: 64px; min-height: 64px;
-    border: var(--border-thick); border-radius: 6px; overflow: hidden;
-    background-color: #f1f1f1;
+    width: 70px; height: 70px; min-width: 70px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(0,0,0,0.5);
+    position: relative;
+}
+.produto-img-wrapper::after {
+    content: ''; position: absolute; inset: 0;
+    box-shadow: inset 0 0 10px rgba(0,240,255,0.2);
+    pointer-events: none;
 }
 .produto-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
 
-/* Espectrograma Modo Voz */
+/* Ondas Modo Voz Holográfico */
 #spectrogram { gap: 4px; }
-.wave-bar { background-color: var(--kalango-orange); }
+.wave-bar { background: var(--holo-cyan); box-shadow: 0 0 10px var(--holo-cyan); }
 
-/* Utilitários */
-.animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 ::-webkit-scrollbar { display: none; }
