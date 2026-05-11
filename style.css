@@ -1,223 +1,98 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kalango - Luís Gomes</title>
-    
-    <link rel="icon" type="image/png" href="logokalango.png">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap');
 
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+:root {
+    --neon-green: #10b981;
+    --dark-obsidian: #030712;
+    --panel-bg: rgba(17, 24, 39, 0.7);
+}
 
-    <link rel="stylesheet" href="style.css">
-</head>
-<body class="h-screen flex flex-col overflow-hidden select-none cyber-bg text-slate-200 relative">
+body { 
+    /* Fonte mais moderna e limpa, muito usada em Fintechs */
+    font-family: 'Plus Jakarta Sans', sans-serif; 
+    background-color: var(--dark-obsidian);
+    color: #f8fafc;
+    overflow: hidden;
+}
 
-    <div id="login-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center p-6 bg-[#020617] transition-all duration-500">
-        <div class="glass-panel p-8 rounded-3xl w-full max-w-sm text-center relative overflow-hidden border border-emerald-500/30">
-            <div class="absolute -top-20 -right-20 w-40 h-40 bg-emerald-500/20 blur-3xl rounded-full pointer-events-none"></div>
-            <img src="logokalango.png" alt="Kalango Logo" class="w-32 h-32 mx-auto mb-6 relative z-10 drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]">
-            <h2 class="text-3xl font-black mb-2 titulo-futurista tracking-tight">KALANGO</h2>
-            <p class="text-emerald-400/80 mb-8 font-medium">Economia Inteligente em Luís Gomes</p>
-            <button onclick="fazerLoginGoogle()" class="w-full bg-white/5 hover:bg-white/10 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-3 transition-all border border-white/10 shadow-lg active:scale-95">
-                <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-6 h-6" alt="Google">
-                Entrar com Google
-            </button>
-        </div>
-    </div>
+/* Fundo Escuro Profundo com Glow Sutil (Garante que não fica branco no celular) */
+.cyber-bg {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: var(--dark-obsidian);
+    background-image: 
+        radial-gradient(circle at 15% 0%, rgba(16, 185, 129, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 85% 100%, rgba(16, 185, 129, 0.1) 0%, transparent 40%);
+    z-index: -1;
+}
 
-    <div id="voice-mode-overlay" class="fixed inset-0 z-[100] bg-[#020617]/95 backdrop-blur-3xl hidden flex-col items-center justify-center transition-all">
-        <button onclick="fecharModoVoz()" class="absolute top-8 left-6 w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-slate-400 hover:text-red-400 z-10 border border-white/10 transition-colors">
-            <i class="fas fa-times text-xl"></i>
-        </button>
+/* Vidro Polido (Glassmorphism de Alta Qualidade) */
+.glass-panel {
+    background: var(--panel-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+    border-radius: 24px;
+}
 
-        <div class="relative mb-8 mt-10">
-            <div id="voice-avatar-glow" class="absolute -inset-4 bg-emerald-500/20 blur-3xl rounded-full transition-all duration-300"></div>
-            <img src="logokalango.png" class="w-48 h-48 object-contain relative z-10 drop-shadow-[0_0_25px_rgba(16,185,129,0.4)]">
-        </div>
+/* Título Premium */
+.titulo-futurista {
+    color: #ffffff;
+    text-shadow: 0 0 20px rgba(16,185,129,0.4);
+    letter-spacing: -0.5px;
+}
 
-        <h2 id="voice-status" class="text-3xl font-black text-white mb-12 tracking-tight">Ouvindo...</h2>
+/* Botões Modernos e Minimalistas */
+.btn-cyber {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    font-weight: 700;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    transition: all 0.2s ease;
+    border: none;
+}
+.btn-cyber:active {
+    transform: scale(0.96);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+}
 
-        <div id="spectrogram" class="flex items-end justify-center gap-2.5 h-24 opacity-0 transition-opacity duration-300">
-            <div class="wave-bar h-6 w-3.5 bg-emerald-400 rounded-full"></div>
-            <div class="wave-bar h-12 w-3.5 bg-emerald-500 rounded-full"></div>
-            <div class="wave-bar h-20 w-3.5 bg-teal-400 rounded-full"></div>
-            <div class="wave-bar h-14 w-3.5 bg-emerald-400 rounded-full"></div>
-            <div class="wave-bar h-8 w-3.5 bg-teal-500 rounded-full"></div>
-            <div class="wave-bar h-16 w-3.5 bg-emerald-500 rounded-full"></div>
-            <div class="wave-bar h-7 w-3.5 bg-teal-400 rounded-full"></div>
-        </div>
+/* Barra de Navegação Flutuante */
+.nav-island {
+    background: rgba(3, 7, 18, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 100px;
+    box-shadow: 0 -5px 25px rgba(0,0,0,0.5);
+}
 
-        <button id="btn-central-mic" onclick="iniciarGravacaoVoz()" class="mt-16 w-20 h-20 bg-emerald-600 rounded-full flex items-center justify-center text-white text-3xl shadow-[0_0_40px_rgba(16,185,129,0.5)] active:scale-90 transition-all">
-            <i class="fas fa-microphone"></i>
-        </button>
-    </div>
+/* CHAT: Balões Refinados */
+.chat-user {
+    align-self: flex-end; 
+    background: linear-gradient(135deg, #10b981, #047857);
+    color: white; 
+    border-radius: 20px 20px 4px 20px;
+    padding: 14px 18px; 
+    max-width: 85%; 
+    box-shadow: 0 4px 15px rgba(16,185,129,0.2);
+    font-weight: 500;
+}
+.chat-ai {
+    align-self: flex-start; 
+    background: rgba(31, 41, 55, 0.6);
+    backdrop-filter: blur(12px);
+    color: #e2e8f0; 
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px 20px 20px 4px;
+    padding: 14px 18px; 
+    max-width: 90%; 
+}
 
-    <div id="app-content" class="hidden flex-col h-full w-full relative z-10">
-        
-        <header class="p-5 flex justify-between items-center z-10">
-            <div class="flex items-center gap-3">
-                <div class="relative">
-                    <div class="absolute -inset-1 bg-emerald-500 rounded-full blur opacity-25 animate-pulse"></div>
-                    <img src="logokalango.png" class="h-12 w-auto relative">
-                </div>
-                <div>
-                    <h1 class="titulo-futurista text-xl leading-none">KALANGO</h1>
-                    <span class="text-[10px] tracking-[4px] opacity-50 uppercase text-emerald-400 font-bold">Smart Prices</span>
-                </div>
-            </div>
-            <div id="user-profile" class="hidden items-center gap-3 bg-white/5 p-1 pr-4 rounded-full border border-white/10 shadow-lg">
-                <img id="user-avatar" class="w-8 h-8 rounded-full border border-emerald-500/50 shadow-[0_0_10px_rgba(16,185,129,0.3)]">
-                <span id="user-name-display" class="text-xs font-medium">...</span>
-            </div>
-        </header>
-
-        <div id="main-container" class="flex-1 overflow-y-auto pb-24 px-4 scroll-smooth">
-            
-            <div id="chat-container" class="h-full flex flex-col hidden animate-fade-in">
-                <div id="chat-messages" class="flex-1 overflow-y-auto p-2 flex flex-col gap-3 pb-32">
-                    <div class="chat-ai text-sm shadow-md">
-                        <b>Oi!</b> Eu sou o Kalango! Aperte no microfone ou escreva aí pra gente conversar sobre preços ou colocar algo no seu carrinho! 🛒
-                    </div>
-                </div>
-                <div class="absolute bottom-24 left-4 right-4 glass-panel p-2 flex items-center gap-2 rounded-full border border-emerald-500/30">
-                    <button onclick="abrirModoVoz()" id="btn-mic-chat" class="w-12 h-12 bg-emerald-600/20 hover:bg-emerald-600/40 rounded-full flex items-center justify-center text-emerald-400 transition-all">
-                        <i class="fas fa-microphone text-lg"></i>
-                    </button>
-                    <input type="text" id="chat-input" placeholder="Pergunte ao Kalango..." class="flex-1 bg-transparent text-white outline-none px-2 placeholder-slate-500">
-                    <button id="btn-enviar-chat" class="w-12 h-12 bg-emerald-600 hover:bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-lg transition-all">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
-                </div>
-            </div>
-
-            <div id="registrar-container" class="h-full flex flex-col items-center justify-center hidden animate-fade-in relative">
-                <div id="registrar-home" class="text-center">
-                    <div class="glass-panel w-40 h-40 rounded-full flex items-center justify-center mx-auto mb-8 shadow-[0_0_30px_rgba(16,185,129,0.2)]">
-                        <i class="fas fa-barcode text-6xl text-emerald-400 animate-pulse"></i>
-                    </div>
-                    <h2 class="text-2xl font-bold mb-2">Novo Preço</h2>
-                    <p class="text-emerald-500/80 mb-8">Escaneie o código de barras para ajudar a comunidade.</p>
-                    <button onclick="iniciarCamera('registrar')" class="w-full btn-cyber py-4 px-6 rounded-xl text-lg font-bold">
-                        <i class="fas fa-camera mr-2"></i> Abrir Câmera
-                    </button>
-                </div>
-                
-                <div id="price-form-section" class="w-full hidden mt-4">
-                    <form id="price-form" class="glass-panel p-5 rounded-2xl flex flex-col gap-4 border border-emerald-500/20">
-                        <div class="flex justify-between items-center mb-2">
-                            <h3 class="font-bold text-lg titulo-futurista">Detalhes do Produto</h3>
-                            <div class="w-16 h-16 bg-white/5 rounded-xl border border-white/10 flex flex-col items-center justify-center relative overflow-hidden cursor-pointer" id="btn-camera-foto">
-                                <i class="fas fa-camera text-emerald-400 text-xl mb-1"></i>
-                                <span class="text-[8px] text-emerald-400 font-bold uppercase tracking-wider">Foto</span>
-                                <img id="preview-imagem" class="hidden absolute inset-0 w-full h-full object-cover">
-                            </div>
-                            <input type="file" id="input-foto-produto" accept="image/*" capture="environment" class="hidden">
-                            <input type="hidden" id="image-url-field">
-                        </div>
-                        <input type="hidden" id="username">
-                        <div><label class="text-xs font-bold text-emerald-500/80 uppercase tracking-wider">Código EAN</label><input type="number" id="ean-field" class="w-full bg-white/5 border border-white/10 p-3 rounded-xl mt-1 outline-none focus:border-emerald-500 text-white font-mono" readonly></div>
-                        <div><label class="text-xs font-bold text-emerald-500/80 uppercase tracking-wider">Produto</label><input type="text" id="product-name" class="w-full bg-white/5 border border-white/10 p-3 rounded-xl mt-1 outline-none focus:border-emerald-500 text-white font-bold" required></div>
-                        <div class="flex gap-4">
-                            <div class="flex-1"><label class="text-xs font-bold text-emerald-500/80 uppercase tracking-wider">Preço (R$)</label><input type="number" step="0.01" id="price" class="w-full bg-white/5 border border-white/10 p-3 rounded-xl mt-1 outline-none focus:border-emerald-500 text-emerald-400 font-black text-lg" required></div>
-                            <div class="flex-1"><label class="text-xs font-bold text-emerald-500/80 uppercase tracking-wider">Mercado</label>
-                                <select id="market" class="w-full bg-[#0b1120] border border-white/10 p-3 rounded-xl mt-1 outline-none text-white focus:border-emerald-500"></select>
-                            </div>
-                        </div>
-                        <button type="submit" class="w-full btn-cyber py-4 rounded-xl font-bold mt-4">Salvar Preço</button>
-                        <button type="button" onclick="location.reload()" class="w-full bg-transparent border border-white/10 text-white/50 py-3 rounded-xl font-bold mt-2 uppercase text-xs tracking-wider">Cancelar</button>
-                    </form>
-                </div>
-            </div>
-
-            <div id="consultar-container" class="h-full flex flex-col hidden animate-fade-in pt-4">
-                <div class="glass-panel p-2 flex items-center gap-2 rounded-2xl mb-6 border border-emerald-500/30">
-                    <input type="text" id="ean-busca" placeholder="Nome do produto ou código..." class="flex-1 bg-transparent text-white p-2 outline-none placeholder-slate-500">
-                    <button onclick="iniciarCamera('pesquisar')" class="w-12 h-12 text-slate-400 hover:text-emerald-400 transition-colors"><i class="fas fa-barcode text-xl"></i></button>
-                    <button id="btn-pesquisar" class="w-12 h-12 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-white shadow-lg transition-all"><i class="fas fa-search"></i></button>
-                </div>
-                <div id="resultados-consulta" class="flex flex-col gap-3 pb-24"></div>
-            </div>
-
-            <div id="catalogo-container" class="h-full flex flex-col hidden animate-fade-in pt-2">
-                <div class="flex justify-between items-end mb-4 px-1">
-                    <h2 class="text-xl font-black titulo-futurista">Melhores Ofertas</h2>
-                    <select id="filtro-mercado-catalogo" class="bg-[#0b1120] border border-white/10 text-white text-xs p-2 rounded-lg outline-none">
-                        <option value="todos">Todos os Mercados</option>
-                    </select>
-                </div>
-                <div id="lista-catalogo" class="flex flex-col gap-2 pb-24"></div>
-            </div>
-
-        </div>
-
-        <nav class="nav-island flex justify-around items-center absolute bottom-4 left-4 right-4 h-[72px] z-50 px-2">
-            <button id="nav-chat" class="flex flex-col items-center gap-1 text-slate-400 hover:text-emerald-400 w-16" onclick="trocarAba('chat')">
-                <i class="fas fa-comment-dots text-xl"></i>
-                <span class="text-[9px] uppercase font-bold tracking-wider">IA</span>
-            </button>
-            <button id="nav-registrar" class="flex flex-col items-center gap-1 text-slate-400 hover:text-emerald-400 w-16" onclick="trocarAba('registrar')">
-                <i class="fas fa-barcode text-xl"></i>
-                <span class="text-[9px] uppercase font-bold tracking-wider">Scan</span>
-            </button>
-            
-            <div class="relative -top-6">
-                <div class="absolute -inset-3 bg-emerald-500/20 blur-xl rounded-full"></div>
-                <button id="btn-carrinho-flutuante" onclick="toggleCarrinho()" class="w-16 h-16 bg-emerald-600 rounded-full flex items-center justify-center text-white shadow-[0_0_20px_rgba(16,185,129,0.5)] border-4 border-[#020617] relative z-10 active:scale-95 transition-transform">
-                    <i class="fas fa-shopping-basket text-xl"></i>
-                    <span id="cart-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#020617] hidden">0</span>
-                </button>
-            </div>
-
-            <button id="nav-consultar" class="flex flex-col items-center gap-1 text-slate-400 hover:text-emerald-400 w-16" onclick="trocarAba('consultar')">
-                <i class="fas fa-search text-xl"></i>
-                <span class="text-[9px] uppercase font-bold tracking-wider">Busca</span>
-            </button>
-            <button id="nav-catalogo" class="flex flex-col items-center gap-1 text-slate-400 hover:text-emerald-400 w-16" onclick="trocarAba('catalogo')">
-                <i class="fas fa-bolt text-xl"></i>
-                <span class="text-[9px] uppercase font-bold tracking-wider">Ofertas</span>
-            </button>
-        </nav>
-        
-    </div> 
-    
-    <div id="scanner-modal" class="fixed inset-0 z-[80] bg-[#020617] hidden flex-col">
-        <div class="p-4 flex justify-between items-center bg-black/50 absolute top-0 w-full z-10 backdrop-blur-md">
-            <h3 id="scanner-title" class="text-white font-bold titulo-futurista">Escanear Código</h3>
-            <button onclick="fecharCamera()" class="text-white w-10 h-10 bg-white/10 rounded-full hover:bg-red-500/50 transition-colors"><i class="fas fa-times"></i></button>
-        </div>
-        <div id="reader" class="w-full h-full bg-black"></div>
-    </div>
-
-    <div id="cart-modal" class="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm hidden flex-col justify-end transition-opacity">
-        <div id="cart-content" class="glass-panel w-full h-[85vh] rounded-t-3xl p-5 flex flex-col transform translate-y-full transition-transform duration-300">
-            <div class="flex justify-between items-center mb-4 pb-4 border-b border-white/10">
-                <h3 class="font-black text-2xl titulo-futurista">Seu Carrinho</h3>
-                <div class="flex gap-2">
-                    <button onclick="abrirModalLimpeza()" class="w-10 h-10 bg-red-500/10 text-red-400 rounded-full flex items-center justify-center hover:bg-red-500/20"><i class="fas fa-trash-alt"></i></button>
-                    <button onclick="toggleCarrinho()" class="w-10 h-10 bg-white/10 text-white rounded-full flex items-center justify-center hover:bg-white/20"><i class="fas fa-times"></i></button>
-                </div>
-            </div>
-            
-            <div id="cart-items" class="flex-1 overflow-y-auto flex flex-col gap-2 pb-4"></div>
-            
-            <div class="mt-4 pt-4 border-t border-white/10">
-                <div class="flex justify-between items-center text-slate-300 mb-2"><span>Total de Itens:</span><span id="cart-total-items" class="font-bold">0</span></div>
-                <div class="flex justify-between items-center mb-6"><span class="text-lg font-bold text-white">Valor Total:</span><span id="cart-total-price" class="text-3xl font-black text-emerald-400">R$ 0,00</span></div>
-                <button onclick="toggleCarrinho()" class="w-full btn-cyber py-4 rounded-xl text-lg font-bold shadow-[0_0_20px_rgba(16,185,129,0.3)]">Continuar Comprando</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="toast-notification" class="fixed top-6 left-1/2 -translate-x-1/2 px-5 py-3 rounded-full shadow-2xl z-[100] flex items-center gap-3 font-bold transition-all duration-300 pointer-events-none opacity-0 -translate-y-32">
-        <span id="toast-icon"><i class="fas fa-check-circle"></i></span>
-        <span id="toast-message">Mensagem</span>
-    </div>
-
-    <script src="script.js"></script>
-</body>
-</html>
+/* Utilitários */
+.animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+::-webkit-scrollbar { display: none; }
