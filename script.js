@@ -1,4 +1,4 @@
-// script.js - v81.0 (Perfil Dinâmico e Chat Inicial)
+// script.js - v81.0 (Perfil Dinâmico Seguro e Inicialização de Chat)
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxjbwSid8YPyGIg44ToWcQvGIv_5ibBLLVpHAS6K3HIRmo_x4GcucDBamlGGyd9XNMH/exec'; 
 
@@ -56,9 +56,9 @@ async function trocarAba(aba) {
     document.getElementById(aba + '-container').classList.remove('hidden'); 
     document.getElementById('nav-' + aba).classList.add('active-tab'); 
     
-    // Só tenta fechar o menu se ele estiver realmente aberto na tela
+    // Fecha o menu lateral apenas se ele estiver aberto
     const sidebar = document.getElementById('sidebar');
-    if (!sidebar.classList.contains('-translate-x-full')) {
+    if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
         toggleMenu(); 
     }
     
@@ -123,7 +123,7 @@ function iniciarGravacaoVoz() {
 }
 
 async function processarMensagemVoz(txt) {
-    const statusText = document.getElementById('voice-status'); const userName = currentUser ? currentUser.displayName.split(' ')[0] : "Usuário";
+    const statusText = document.getElementById('voice-status'); const userName = currentUser ? (currentUser.displayName || "Usuário").split(' ')[0] : "Usuário";
     statusText.textContent = "Pensando...";
     historicoChat.push(userName + " (Áudio): " + txt); localStorage.setItem('kalango_chat_history', JSON.stringify(historicoChat));
     try {
@@ -144,7 +144,7 @@ function rolarChatParaFim() { const area = document.getElementById('chat-message
 
 async function enviarMensagemGemini() {
     const input = document.getElementById('chat-input'); const area = document.getElementById('chat-messages'); const txt = input.value.trim();
-    if (!txt) return; const userName = currentUser ? currentUser.displayName.split(' ')[0] : "Usuário";
+    if (!txt) return; const userName = currentUser ? (currentUser.displayName || "Usuário").split(' ')[0] : "Usuário";
     area.innerHTML += `<div class="chat-user animate-fade-in">${txt}</div>`; input.value = ''; rolarChatParaFim();
     const id = 'load-' + Date.now(); area.innerHTML += `<div id="${id}" class="chat-ai opacity-50"><i class="fas fa-circle-notch fa-spin text-emerald-500 mr-2"></i>Pensando...</div>`; rolarChatParaFim();
     historicoChat.push(userName + ": " + txt); localStorage.setItem('kalango_chat_history', JSON.stringify(historicoChat));
@@ -167,7 +167,7 @@ async function enviarMensagemGemini() {
 }
 
 // =========================================================================
-// INICIALIZAÇÃO E APP
+// INICIALIZAÇÃO SEGURA DO APLICATIVO
 // =========================================================================
 
 function fazerLoginGoogle() { const provider = new firebase.auth.GoogleAuthProvider(); auth.signInWithPopup(provider).catch(() => auth.signInWithRedirect(provider)); }
@@ -179,28 +179,46 @@ auth.onAuthStateChanged((user) => {
         document.getElementById('app-content').classList.remove('hidden'); 
         document.getElementById('app-content').classList.add('flex');
         
-        // Pega apenas o primeiro nome do utilizador
-        const primeiroNome = user.displayName.split(' ')[0];
-        
-        // Atualiza a Sidebar
-        document.getElementById('user-name-display').textContent = primeiroNome + "!"; 
-        document.getElementById('user-avatar').src = user.photoURL; 
-        
-        // Atualiza a Barra de Topo (Header) com foto e "Olá, Nome!"
-        const headerProfile = document.getElementById('header-profile');
-        if (headerProfile) {
-            headerProfile.classList.remove('hidden');
-            headerProfile.classList.add('flex');
-            document.getElementById('header-name').textContent = primeiroNome;
-            document.getElementById('header-avatar').src = user.photoURL;
+        try {
+            // Sistema de segurança: extrai apenas o primeiro nome se existir
+            const nomeCompleto = user.displayName || "Usuário";
+            const primeiroNome = nomeCompleto.split(' ')[0];
+            const foto = user.photoURL || FallbackImage;
+            
+            // Atualiza Sidebar
+            const sideName = document.getElementById('user-name-display');
+            if(sideName) sideName.textContent = primeiroNome + "!"; 
+            const sideAvatar = document.getElementById('user-avatar');
+            if(sideAvatar) sideAvatar.src = foto; 
+            
+            // Atualiza Header Profile
+            const headerProfile = document.getElementById('header-profile');
+            if (headerProfile) {
+                headerProfile.classList.remove('hidden');
+                headerProfile.classList.add('flex');
+                
+                const headerName = document.getElementById('header-name');
+                if(headerName) headerName.textContent = primeiroNome;
+                
+                const headerAvatar = document.getElementById('header-avatar');
+                if(headerAvatar) headerAvatar.src = foto;
+            }
+
+            const usernameInput = document.getElementById('username');
+            if(usernameInput) usernameInput.value = nomeCompleto;
+
+        } catch (erro) {
+            console.error("Aviso Kalango: Falha silenciosa ao carregar perfil visual.", erro);
         }
 
-        document.getElementById('username').value = user.displayName; 
         atualizarContadorCarrinho(); 
         carregarCatalogo(); 
         
-        // GARANTE QUE O CHAT SEJA A ABA INICIAL E VISÍVEL
-        trocarAba('chat'); 
+        // Garante que o DOM carregue antes de acionar a aba
+        setTimeout(() => {
+            trocarAba('chat');
+        }, 150);
+        
     } else { 
         currentUser = null; 
         document.getElementById('login-screen').classList.remove('hidden'); 
@@ -209,6 +227,7 @@ auth.onAuthStateChanged((user) => {
     } 
 });
 
+// Outras funções do sistema...
 function adicionarAoCarrinho(produto, preco, mercado, imagem = '') {
     const id = produto + mercado; const existente = carrinho.find(i => i.id === id);
     if (existente) existente.qtd++; else carrinho.push({ id, produto, preco, mercado, qtd: 1, imagem: imagem || FallbackImage });
