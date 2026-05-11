@@ -109,3 +109,46 @@ h1.gradient-text {
     70% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
     100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }
+
+/* --- VISUAL PREMIUM 2.0 (GLASSMORPHISM) --- */
+
+/* Fundo Escuro com Movimento Suave */
+.bg-animated {
+    background: linear-gradient(-45deg, #0b1120, #064e3b, #0f172a, #022c22);
+    background-size: 400% 400%;
+    animation: gradientBG 20s ease infinite;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Cards com Efeito Vidro (Para os produtos e carrinho) */
+.glass-card {
+    background: rgba(30, 41, 59, 0.4) !important; /* Fundo semi-transparente */
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important; /* Brilho superior */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2) !important;
+    border-radius: 1rem !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.glass-card:active {
+    transform: scale(0.98);
+}
+
+/* Barra de Navegação Flutuante (Estilo iPhone) */
+.floating-nav {
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    margin: 0 16px 16px 16px; /* Descola da borda da tela */
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    padding: 8px 0;
+}
