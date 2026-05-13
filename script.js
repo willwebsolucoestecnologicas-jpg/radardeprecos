@@ -50,7 +50,7 @@ window.addEventListener('load', () => {
         
         // Trava de segurança: se a internet falhar e o vídeo não rodar, 
         // força a abertura do app após 6 segundos para o cliente não ficar preso.
-        setTimeout(finalizarIntro, 6000); 
+        setTimeout(finalizarIntro, 8000); 
     } else {
         setTimeout(finalizarIntro, 3000);
     }
