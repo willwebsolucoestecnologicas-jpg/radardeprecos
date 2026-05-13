@@ -15,17 +15,10 @@
 </head>
 <body class="h-[100dvh] flex flex-col overflow-hidden select-none bg-[#0a0f18] text-slate-100 relative">
 
-    <div id="splash-screen" class="fixed inset-0 z-[300] flex flex-col items-center justify-center transition-opacity duration-1000">
-        <div class="relative w-64 h-64 flex items-center justify-center">
-            <div class="absolute inset-0 bg-[#ff7e21] blur-[60px] opacity-20 animate-pulse"></div>
-            <img src="logokalango.png" class="w-full h-auto object-contain splash-logo">
-        </div>
-        <div class="mt-8 flex flex-col items-center">
-            <h1 class="text-4xl font-extrabold tracking-tighter text-white">KALANGO</h1>
-            <p class="text-[#ff7e21] font-bold uppercase tracking-[0.3em] text-[10px] mt-1">Smarter Decisions</p>
-        </div>
+    <div id="splash-screen" class="fixed inset-0 z-[300] bg-[#0a0f18] flex items-center justify-center transition-opacity duration-1000">
+        <video id="intro-video" src="introkalango.mp4" autoplay muted playsinline class="w-full h-full object-cover"></video>
     </div>
-
+    
     <div id="login-screen" class="fixed inset-0 z-[100] flex flex-col items-center justify-center p-8 bg-[#0a0f18] hidden opacity-0 transition-opacity duration-500">
         <div class="w-full max-w-sm text-center">
             <img src="logokalango.png" class="w-40 h-auto mx-auto mb-10 drop-shadow-2xl">
