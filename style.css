@@ -1,4 +1,4 @@
-/* style.css - v100.0 (Kalango Evolution: Cyber-Orange Edition) */
+/* style.css - v101.0 (Kalango Evolution: Correções Vídeo) */
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -19,19 +19,18 @@ body {
     -webkit-tap-highlight-color: transparent;
 }
 
-/* Splash Screen Premium */
+/* --------------------------------------------------- */
+/* SPLASH SCREEN COM VÍDEO (Ajustes de Alinhamento)  */
+/* --------------------------------------------------- */
 #splash-screen {
-    background: radial-gradient(circle at center, #1a2a3a 0%, #0a0f18 100%);
+    background-color: var(--midnight);
 }
-.splash-logo {
-    animation: zoomInOut 3s ease-in-out forwards;
-    filter: drop-shadow(0 0 30px rgba(255, 126, 33, 0.4));
-}
-@keyframes zoomInOut {
-    0% { transform: scale(0.8); opacity: 0; }
-    20% { opacity: 1; }
-    80% { transform: scale(1.05); opacity: 1; }
-    100% { transform: scale(1.1); opacity: 0; }
+#splash-screen video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center; /* <--- CORREÇÃO: Força o vídeo a centralizar! */
+    transform: scale(1.08);
 }
 
 /* Sidebar Dark Mode */
@@ -94,3 +93,21 @@ body {
 }
 
 ::-webkit-scrollbar { display: none; }
+
+/* ========================================================================================= */
+/* ⚠️ INSTRUÇÃO IMPORTANTE: REMOÇÃO DA MARCA D'ÁGUA DA VEO ⚠️                                  */
+/* O bloco abaixo está a usar uma "classe de exemplo" (.veo-watermark-classe-exemplo).       */
+/* Terá de descobrir qual é a classe ou o ID real que a Veo usa na sua página.               */
+/* Inspecione a marca d'água no navegador para encontrar o nome correto e substitua-o abaixo. */
+/* ========================================================================================= */
+
+.veo-watermark-classe-exemplo {
+    display: none !important;
+}
+
+/* Caso a Veo use um ID em vez de classe, a regra seria assim: */
+/*
+#id-da-marca-dagua-veo {
+    display: none !important;
+}
+*/
