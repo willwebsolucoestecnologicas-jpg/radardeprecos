@@ -462,3 +462,49 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('price-form').addEventListener('submit', salvarPreco);
     (async () => { try { const res = await fetch(`${APPS_SCRIPT_URL}?acao=buscarMercados`, { redirect: 'follow' }); const d = await res.json(); const s = document.getElementById('market'); if(d.mercados) { s.innerHTML = ''; d.mercados.forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; s.appendChild(o); }); } } catch(e) {} })(); 
 });
+
+
+// =========================================================================
+// CHECKOUT E PAGAMENTO (Modelo Profissional)
+// =========================================================================
+async function iniciarCheckoutProfissional() {
+    if (carrinho.length === 0) {
+        return mostrarNotificacao("Sua cesta está vazia!", "erro");
+    }
+
+    // Pega o botão para fazer a animação de carregamento
+    const btn = document.getElementById('btn-checkout');
+    const conteudoOriginal = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Conectando banco...';
+    btn.disabled = true;
+
+    // Calcula o total
+    const totalTexto = document.getElementById('cart-total-price').textContent.replace('R$ ', '').replace(',', '.');
+    const totalFloat = parseFloat(totalTexto);
+    const userName = currentUser ? currentUser.displayName : "Usuário Anônimo";
+
+    const dadosPedido = {
+        cliente: userName,
+        total: totalFloat,
+        itens: carrinho
+    };
+
+    try {
+        /* ⚠️ AQUI ENTRARÁ A CONEXÃO COM SEU CODE.GS E MERCADO PAGO 
+        Como estamos na fase de montagem, deixei um alerta simulando o sucesso 
+        para você ver o botão funcionando sem travar o app.
+        */
+        
+        setTimeout(() => {
+            alert(`✅ Simulação de Checkout!\n\nCliente: ${userName}\nTotal: R$ ${totalFloat.toFixed(2)}\n\nNa próxima etapa, este botão vai gerar o código PIX Split do Mercado Pago.`);
+            
+            btn.innerHTML = conteudoOriginal;
+            btn.disabled = false;
+        }, 1500);
+
+    } catch (e) {
+        mostrarNotificacao("Erro ao gerar pedido", "erro");
+        btn.innerHTML = conteudoOriginal;
+        btn.disabled = false;
+    }
+}
