@@ -248,34 +248,66 @@ function limparCarrinho() { if(confirm("Esvaziar o carrinho?")) { carrinho = [];
 function salvarCarrinho() { localStorage.setItem('kalango_cart', JSON.stringify(carrinho)); atualizarContadorCarrinho(); }
 
 function renderizarCarrinho() { 
-    const c = document.getElementById('cart-items'); const t = document.getElementById('cart-total-price'); 
-    if (carrinho.length === 0) { c.innerHTML = '<p class="text-center opacity-40 pt-10 text-sm font-bold text-white">Vazio</p>'; t.textContent = "R$ 0,00"; return; } 
-    c.innerHTML = ''; let total = 0; 
-    carrinho.forEach(i => { 
-        total += i.preco * i.qtd; 
-        c.innerHTML += `
-        <div class="app-card p-4 flex justify-between items-center animate-fade-in border border-white/5 bg-[#161e2d] rounded-2xl mb-3">
-            <div class="flex items-center gap-3 w-2/3">
-                <div class="w-14 h-14 shrink-0 rounded-xl overflow-hidden bg-[#0a0f18] border border-[#ff7e21]/20">
-                    <img src="${i.imagem}" onerror="this.src='${FallbackImage}'" class="w-full h-full object-cover">
+    const c = document.getElementById('cart-items'); 
+    const t = document.getElementById('cart-total-price'); 
+    if (carrinho.length === 0) { 
+        c.innerHTML = '<p class="text-center opacity-40 pt-10 text-sm font-bold text-white">Cesta vazia</p>'; 
+        t.textContent = "R$ 0,00"; 
+        return; 
+    } 
+
+    // Agrupar itens por mercado
+    const grupos = carrinho.reduce((acc, item) => {
+        if (!acc[item.mercado]) acc[item.mercado] = [];
+        acc[item.mercado].push(item);
+        return acc;
+    }, {});
+
+    c.innerHTML = ''; 
+    let totalGeral = 0; 
+
+    for (const mercado in grupos) {
+        let subtotalMercado = 0;
+        let htmlGrupo = `<div class="mercado-grupo mb-6 border-l-2 border-[#ff7e21] pl-4">
+                            <h4 class="text-[#ff7e21] font-black text-xs uppercase mb-3 tracking-widest">${mercado}</h4>`;
+        
+        grupos[mercado].forEach(i => {
+            const sub = i.preco * i.qtd;
+            subtotalMercado += sub;
+            totalGeral += sub;
+            htmlGrupo += `
+            <div class="app-card p-3 mb-2 flex justify-between items-center bg-[#161e2d] rounded-xl border border-white/5">
+                <div class="flex items-center gap-3">
+                    <img src="${i.imagem || FallbackImage}" class="w-10 h-10 rounded-lg object-cover">
+                    <div class="truncate w-32">
+                        <b class="text-white text-xs block truncate">${i.produto}</b>
+                        <span class="text-slate-400 text-[10px]">R$ ${i.preco.toFixed(2)} x ${i.qtd}</span>
+                    </div>
                 </div>
-                <div class="truncate">
-                    <b class="text-white text-sm truncate block w-full">${i.produto}</b>
-                    <small class="text-[#ff7e21] font-bold text-[10px] block uppercase">${i.mercado}</small>
+                <div class="text-right">
+                    <span class="text-white font-bold text-sm block">R$ ${sub.toFixed(2)}</span>
+                    <button onclick="alterarQtd('${i.id}',-1)" class="text-red-500 text-xs font-bold">Remover</button>
                 </div>
-            </div>
-            <div class="text-right">
-                <span class="text-white font-bold block text-base mb-2">R$ ${(i.preco * i.qtd).toFixed(2)}</span>
-                <div class="flex items-center justify-end gap-2 bg-[#0a0f18] rounded-xl border border-white/5 p-1">
-                    <button onclick="alterarQtd('${i.id}',-1)" class="text-slate-400 font-bold hover:text-red-500 px-2 text-lg">-</button> 
-                    <span class="text-white font-bold text-sm w-4 text-center">${i.qtd}</span> 
-                    <button onclick="alterarQtd('${i.id}',1)" class="text-slate-400 font-bold hover:text-[#ff7e21] px-2 text-lg">+</button>
-                </div>
-            </div>
-        </div>`; 
-    }); 
-    t.textContent = `R$ ${total.toFixed(2)}`; 
+            </div>`;
+        });
+
+        htmlGrupo += `<div class="text-right pr-2"><span class="text-slate-500 text-[10px] font-bold">Subtotal: R$ ${subtotalMercado.toFixed(2)}</span></div></div>`;
+        c.innerHTML += htmlGrupo;
+    }
+
+    t.textContent = `R$ ${totalGeral.toFixed(2)}`;
+    
+    // Adicionar o botão de "Pedir Entrega" se não existir
+    if (!document.getElementById('btn-checkout')) {
+        const btnCheckout = document.createElement('button');
+        btnCheckout.id = 'btn-checkout';
+        btnCheckout.className = 'w-full bg-[#ff7e21] text-white py-4 rounded-2xl font-bold mt-4 shadow-xl';
+        btnCheckout.innerHTML = '<i class="fas fa-truck"></i> Pedir que o Kalango Entregue';
+        btnCheckout.onclick = iniciarCheckoutProfissional;
+        c.appendChild(btnCheckout);
+    }
 }
+
 function abrirModalLimpeza() { if(confirm("Esvaziar o carrinho?")) { limparCarrinho(); } }
 
 async function carregarCatalogo() { try { const r = await fetch(`${APPS_SCRIPT_URL}?acao=listarCatalogo`, { redirect: 'follow' }); const d = await r.json(); catalogoDados = d.catalogo || []; atualizarListaCatalogo(catalogoDados); } catch(e) {} }
