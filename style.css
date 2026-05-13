@@ -1,10 +1,9 @@
-/* style.css - v101.0 (Kalango Evolution: FULL WIDTH FIX) */
+/* style.css - v101.0 (Fix Layout & Anti-Veo Watermark) */
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
     --kalango-orange: #ff7e21; 
-    --kalango-peach: #ffbd7a;
     --midnight: #0a0f18;       
     --surface: #161e2d;        
     --text-main: #f8fafc;
@@ -12,76 +11,64 @@
 }
 
 /* =========================================================================
-   BLINDAGEM DO LAYOUT RAIZ (O CONSERTO DO CORTE)
-   Utilizamos !important nestas regras para garantir que nenhuma outra
-   regra antiga ou do Tailwind afete a largura total do ecrã.
+   BLINDAGEM DO LAYOUT RAIZ (CONSERTO DO CORTE LATERAL)
+   Tranca o aplicativo nas bordas do telemóvel.
    ========================================================================= */
+* {
+    box-sizing: border-box !important;
+    margin: 0;
+    padding: 0;
+}
+
 html, body {
     font-family: 'Plus Jakarta Sans', sans-serif;
     background-color: var(--midnight) !important;
     color: var(--text-main) !important;
-    
-    /* ZERAR TUDO: GARANTE LARGURA TOTAL DO ECRÃ */
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
+    width: 100vw !important;
     max-width: 100vw !important;
-    box-sizing: border-box !important;
-    
-    /* IMPEDE SCROLL LATERAL */
-    overflow-x: hidden !important; 
-    overflow-y: hidden; /* Mantém o overflow global como hidden, pois controlamos nos containers internos */
-
-    /* UTILITÁRIOS GLOBAIS */
-    select-none;
+    height: 100dvh !important;
+    overflow: hidden !important; 
+    position: fixed !important; /* Isso impede o app de "escorregar" para a direita */
+    top: 0;
+    left: 0;
     -webkit-tap-highlight-color: transparent;
 }
 
 /* =========================================================================
-   SPLASH SCREEN E VÍDEO (REFORÇADO)
-   Garante que o vídeo preencha 100% da tela física.
+   VÍDEO DA INTRO (Truque Anti-Marca d'Água da Veo)
    ========================================================================= */
 #splash-screen {
-    background: radial-gradient(circle at center, #1a2a3a 0%, #0a0f18 100%);
-    position: fixed;
-    top: 0;
-    left: 0;
+    width: 100vw;
+    height: 100dvh;
+    background-color: var(--midnight);
+}
+
+#intro-video {
     width: 100%;
     height: 100%;
-    z-index: 300;
+    object-fit: cover;
+    /* Puxa o vídeo para a esquerda para alinhar o Kalango */
+    object-position: right center; 
+    /* Zoom tático para empurrar a marca da Veo para fora da tela */
+    transform: scale(1.08); 
+    transform-origin: bottom right;
 }
 
-#splash-screen video {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important; /* Corta para preencher */
-    object-position: center center !important; /* Centraliza o corte (V50 fix) */
-}
-
-.splash-logo {
-    animation: zoomInOut 3s ease-in-out forwards;
-    filter: drop-shadow(0 0 30px rgba(255, 126, 33, 0.4));
-}
-@keyframes zoomInOut {
-    0% { transform: scale(0.8); opacity: 0; }
-    20% { opacity: 1; }
-    80% { transform: scale(1.05); opacity: 1; }
-    100% { transform: scale(1.1); opacity: 0; }
+/* Camuflagem extra para o canto inferior direito */
+.veo-blocker {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    width: 100px;
+    height: 50px;
+    background: var(--midnight);
+    filter: blur(10px);
+    z-index: 310;
 }
 
 /* =========================================================================
-   REFORÇO DOS CONTENTORES PRINCIPAIS (APÓS LOGIN)
+   RESTANTE DO DESIGN DO APP
    ========================================================================= */
-#main-header, #main-container {
-    width: 100% !important;
-    max-width: 100vw !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-}
-
-/* Restante do design (Mantido da V2.0) */
-
-/* Sidebar Dark Mode */
 #sidebar {
     background-color: var(--midnight);
     border-right: 1px solid rgba(255, 255, 255, 0.05);
@@ -96,7 +83,6 @@ html, body {
     border-left: 4px solid var(--kalango-orange);
 }
 
-/* Botões com Gradiente do Logo */
 .btn-primary {
     background: linear-gradient(135deg, #ff7e21 0%, #f44336 100%);
     color: white;
@@ -105,7 +91,6 @@ html, body {
     box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
 }
 
-/* CHAT: Balões Futuristas */
 .chat-user {
     align-self: flex-end; 
     background: #1e293b;
@@ -122,7 +107,6 @@ html, body {
     padding: 14px 16px; max-width: 90%;
 }
 
-/* Cards de Produtos */
 .app-card {
     background: var(--surface);
     border-radius: 24px;
@@ -134,7 +118,6 @@ html, body {
     border: 1px solid rgba(255, 126, 33, 0.1);
 }
 
-/* Utilitários */
 .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 ::-webkit-scrollbar { display: none; }
