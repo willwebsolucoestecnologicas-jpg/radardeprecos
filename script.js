@@ -467,46 +467,41 @@ document.addEventListener('DOMContentLoaded', () => {
 // CHECKOUT E PAGAMENTO REAL
 // =========================================================================
 async function iniciarCheckoutProfissional() {
-    if (carrinho.length === 0) {
-        return mostrarNotificacao("Sua cesta está vazia!", "erro");
-    }
+    if (carrinho.length === 0) return mostrarNotificacao("Sua cesta está vazia!", "erro");
 
     const btn = document.getElementById('btn-checkout');
     const conteudoOriginal = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Gerando Pedido...';
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Abrindo Pagamento...';
     btn.disabled = true;
 
     const totalTexto = document.getElementById('cart-total-price').textContent.replace('R$ ', '').replace(',', '.');
-    const totalFloat = parseFloat(totalTexto);
     const userName = currentUser ? currentUser.displayName : "Usuário Anônimo";
 
-    // Prepara os dados para o servidor
-    const payload = {
-        acao: "criarPedido", // Isso avisa o code.gs qual rota tomar
-        cliente: userName,
-        total: totalFloat,
-        itens: carrinho
-    };
+    // Monta a URL com os dados do pedido
+    const urlPedido = `${APPS_SCRIPT_URL}?acao=criarPedido&cliente=${encodeURIComponent(userName)}&total=${totalTexto}&itens=${encodeURIComponent(JSON.stringify(carrinho))}`;
 
     try {
-        // Envia para a sua planilha
-        const resposta = await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            body: JSON.stringify(payload),
-            mode: 'no-cors' // Usamos no-cors no Apps Script por padrão
-        });
+        // Faz a chamada e espera o link de volta
+        const resposta = await fetch(urlPedido);
+        const dados = await resposta.json();
 
-        mostrarNotificacao("Pedido gerado com sucesso!");
-        
-        // Simula redirecionamento para o pagamento
-        setTimeout(() => {
-            btn.innerHTML = '<i class="fas fa-check"></i> Pedido Registrado!';
-            // Aqui vamos limpar o carrinho e redirecionar no futuro
-            limparCarrinho();
-        }, 1500);
+        if (dados.link && dados.link.startsWith('http')) {
+            mostrarNotificacao("Redirecionando para o Pix...");
+            
+            // Limpa o carrinho antes de sair
+            carrinho = [];
+            localStorage.removeItem('kalango_cart');
+            atualizarContadorCarrinho();
+
+            // A MÁGICA: Abre o Mercado Pago na mesma aba
+            window.location.href = dados.link;
+        } else {
+            throw new Error("Link inválido");
+        }
 
     } catch (e) {
-        mostrarNotificacao("Erro de conexão", "erro");
+        console.error(e);
+        mostrarNotificacao("Erro ao conectar com Mercado Pago", "erro");
         btn.innerHTML = conteudoOriginal;
         btn.disabled = false;
     }
