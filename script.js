@@ -1,4 +1,4 @@
-// script.js - v91.0 (Bugfix Viewport e Splash)
+// script.js - v102.0 (Dark Mode Fixes, Photo Preview & Autor)
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxjbwSid8YPyGIg44ToWcQvGIv_5ibBLLVpHAS6K3HIRmo_x4GcucDBamlGGyd9XNMH/exec'; 
 
@@ -25,14 +25,12 @@ let historicoChat = JSON.parse(localStorage.getItem('kalango_chat_history')) || 
 const FallbackImage = 'logokalango.png';
 
 // =========================================================================
-// =========================================================================
 // SPLASH SCREEN (SINCRONIZADA COM O VÍDEO)
 // =========================================================================
 window.addEventListener('load', () => {
     const video = document.getElementById('intro-video');
     const splash = document.getElementById('splash-screen');
 
-    // Função que remove a tela de intro e decide para onde o usuário vai
     function finalizarIntro() {
         if (splash && !splash.classList.contains('opacity-0')) {
             splash.classList.add('opacity-0');
@@ -40,16 +38,12 @@ window.addEventListener('load', () => {
                 splash.remove(); 
                 if(currentUser) mostrarInterfacePrincipal();
                 else mostrarTelaLogin();
-            }, 1000); // Tempo do fade out para ficar suave
+            }, 1000); 
         }
     }
 
     if (video) {
-        // Quando o vídeo acabar naturalmente, chama a função
         video.onended = finalizarIntro;
-        
-        // Trava de segurança: se a internet falhar e o vídeo não rodar, 
-        // força a abertura do app após 6 segundos para o cliente não ficar preso.
         setTimeout(finalizarIntro, 8000); 
     } else {
         setTimeout(finalizarIntro, 3000);
@@ -88,6 +82,7 @@ function mostrarTelaLogin() {
         main.classList.remove('flex');
     }
 }
+
 // =========================================================================
 // MENU LATERAL E ABAS
 // =========================================================================
@@ -187,7 +182,7 @@ async function enviarMensagemGemini() {
     const input = document.getElementById('chat-input'); const area = document.getElementById('chat-messages'); const txt = input.value.trim();
     if (!txt) return; const userName = currentUser ? (currentUser.displayName || "Usuário").split(' ')[0] : "Usuário";
     area.innerHTML += `<div class="chat-user animate-fade-in">${txt}</div>`; input.value = ''; rolarChatParaFim();
-    const id = 'load-' + Date.now(); area.innerHTML += `<div id="${id}" class="chat-ai opacity-50"><i class="fas fa-circle-notch fa-spin text-emerald-500 mr-2"></i>Pensando...</div>`; rolarChatParaFim();
+    const id = 'load-' + Date.now(); area.innerHTML += `<div id="${id}" class="chat-ai opacity-50"><i class="fas fa-circle-notch fa-spin text-[#ff7e21] mr-2"></i>Pensando...</div>`; rolarChatParaFim();
     historicoChat.push(userName + ": " + txt); localStorage.setItem('kalango_chat_history', JSON.stringify(historicoChat));
 
     try {
@@ -242,7 +237,9 @@ auth.onAuthStateChanged((user) => {
     } 
 });
 
-// Outras funções do sistema...
+// =========================================================================
+// FUNÇÕES DE INTERFACE ATUALIZADAS (DARK MODE + AUTOR DO CADASTRO)
+// =========================================================================
 function adicionarAoCarrinho(produto, preco, mercado, imagem = '') { const id = produto + mercado; const existente = carrinho.find(i => i.id === id); if (existente) existente.qtd++; else carrinho.push({ id, produto, preco, mercado, qtd: 1, imagem: imagem || FallbackImage }); salvarCarrinho(); mostrarNotificacao(`Adicionado!`); atualizarContadorCarrinho(); }
 function toggleCarrinho() { const m = document.getElementById('cart-modal'); const c = document.getElementById('cart-content'); if (m.classList.contains('hidden')) { renderizarCarrinho(); m.classList.remove('hidden'); setTimeout(() => c.classList.remove('translate-y-full'), 10); } else { c.classList.add('translate-y-full'); setTimeout(() => m.classList.add('hidden'), 300); } }
 function atualizarContadorCarrinho() { const c = carrinho.reduce((a, b) => a + b.qtd, 0); const b = document.getElementById('cart-count'); if(b) { b.textContent = c; b.classList.toggle('hidden', c === 0); } }
@@ -252,9 +249,31 @@ function salvarCarrinho() { localStorage.setItem('kalango_cart', JSON.stringify(
 
 function renderizarCarrinho() { 
     const c = document.getElementById('cart-items'); const t = document.getElementById('cart-total-price'); 
-    if (carrinho.length === 0) { c.innerHTML = '<p class="text-center opacity-40 pt-10 text-sm font-bold">Vazio</p>'; t.textContent = "R$ 0,00"; return; } 
+    if (carrinho.length === 0) { c.innerHTML = '<p class="text-center opacity-40 pt-10 text-sm font-bold text-white">Vazio</p>'; t.textContent = "R$ 0,00"; return; } 
     c.innerHTML = ''; let total = 0; 
-    carrinho.forEach(i => { total += i.preco * i.qtd; c.innerHTML += `<div class="app-card p-3 mb-2 flex justify-between items-center animate-fade-in border border-slate-100"><div class="flex items-center gap-3 w-2/3"><div class="produto-img-wrapper !w-12 !h-12 !min-w-[48px] !rounded-lg"><img src="${i.imagem}" onerror="this.src='${FallbackImage}'"></div><div class="truncate"><b class="text-slate-800 text-sm truncate block w-full">${i.produto}</b><small class="text-slate-500 text-[10px] block">${i.mercado}</small></div></div><div class="text-right"><span class="text-emerald-600 font-bold block text-base mb-1">R$ ${(i.preco * i.qtd).toFixed(2)}</span><div class="flex items-center justify-end gap-2 bg-slate-50 rounded-lg border border-slate-100 p-0.5"><button onclick="alterarQtd('${i.id}',-1)" class="text-slate-400 font-bold hover:text-red-500 px-2">-</button> <span class="text-slate-800 font-bold text-sm w-4 text-center">${i.qtd}</span> <button onclick="alterarQtd('${i.id}',1)" class="text-slate-400 font-bold hover:text-emerald-500 px-2">+</button></div></div></div>`; }); 
+    carrinho.forEach(i => { 
+        total += i.preco * i.qtd; 
+        c.innerHTML += `
+        <div class="app-card p-4 flex justify-between items-center animate-fade-in border border-white/5 bg-[#161e2d] rounded-2xl mb-3">
+            <div class="flex items-center gap-3 w-2/3">
+                <div class="w-14 h-14 shrink-0 rounded-xl overflow-hidden bg-[#0a0f18] border border-[#ff7e21]/20">
+                    <img src="${i.imagem}" onerror="this.src='${FallbackImage}'" class="w-full h-full object-cover">
+                </div>
+                <div class="truncate">
+                    <b class="text-white text-sm truncate block w-full">${i.produto}</b>
+                    <small class="text-[#ff7e21] font-bold text-[10px] block uppercase">${i.mercado}</small>
+                </div>
+            </div>
+            <div class="text-right">
+                <span class="text-white font-bold block text-base mb-2">R$ ${(i.preco * i.qtd).toFixed(2)}</span>
+                <div class="flex items-center justify-end gap-2 bg-[#0a0f18] rounded-xl border border-white/5 p-1">
+                    <button onclick="alterarQtd('${i.id}',-1)" class="text-slate-400 font-bold hover:text-red-500 px-2 text-lg">-</button> 
+                    <span class="text-white font-bold text-sm w-4 text-center">${i.qtd}</span> 
+                    <button onclick="alterarQtd('${i.id}',1)" class="text-slate-400 font-bold hover:text-[#ff7e21] px-2 text-lg">+</button>
+                </div>
+            </div>
+        </div>`; 
+    }); 
     t.textContent = `R$ ${total.toFixed(2)}`; 
 }
 function abrirModalLimpeza() { if(confirm("Esvaziar o carrinho?")) { limparCarrinho(); } }
@@ -263,27 +282,114 @@ async function carregarCatalogo() { try { const r = await fetch(`${APPS_SCRIPT_U
 
 function atualizarListaCatalogo(d) { 
     const l = document.getElementById('lista-catalogo'); if(!l) return; l.innerHTML = ''; 
-    d.forEach(i => { l.innerHTML += `<div class="app-card p-3 mb-3 flex justify-between items-center animate-fade-in gap-3"><div class="produto-img-wrapper"><img src="${i.imagem || FallbackImage}" onerror="this.src='${FallbackImage}'"></div><div class="flex-1 flex justify-between items-center overflow-hidden"><div class="w-[55%] pr-2"><b class="text-slate-800 text-sm block truncate mb-0.5">${i.produto}</b><span class="text-[10px] text-slate-500 font-bold bg-slate-100 px-1.5 py-0.5 rounded">${i.mercado}</span></div><div class="text-right shrink-0"><span class="text-emerald-600 font-black block text-xl mb-1">R$ ${i.preco.toFixed(2)}</span><button onclick="adicionarAoCarrinho('${i.produto.replace(/'/g, "\\'")}',${i.preco},'${i.mercado.replace(/'/g, "\\'")}', '${i.imagem}')" class="bg-emerald-50 text-emerald-600 font-bold px-3 py-1 rounded-lg text-xs w-full hover:bg-emerald-100">+ Add</button></div></div></div>`; }); 
+    if(d.length === 0) { l.innerHTML = '<p class="text-center text-slate-500 mt-10 text-sm">Nenhuma oferta encontrada.</p>'; return; }
+    
+    d.forEach(i => { 
+        l.innerHTML += `
+        <div class="app-card p-4 mb-4 flex justify-between items-center animate-fade-in gap-3 relative border border-white/5 bg-[#161e2d] rounded-2xl">
+            <div class="w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-[#0a0f18] border border-[#ff7e21]/20 relative z-10">
+                <img src="${i.imagem || FallbackImage}" onerror="this.src='${FallbackImage}'" class="w-full h-full object-cover">
+            </div>
+            <div class="flex-1 flex flex-col overflow-hidden relative z-10">
+                <b class="text-white text-sm block truncate mb-1">${i.produto}</b>
+                <div class="flex items-center gap-2 mb-1.5">
+                    <span class="text-[9px] text-[#ff7e21] font-bold bg-[#ff7e21]/10 px-2 py-0.5 rounded uppercase tracking-wider">${i.mercado}</span>
+                </div>
+                <span class="text-[10px] text-slate-400 font-medium truncate"><i class="fas fa-user-edit text-slate-500 mr-1"></i> Por: ${i.usuario || 'Anônimo'}</span>
+            </div>
+            <div class="text-right shrink-0 flex flex-col items-end gap-2 relative z-10">
+                <span class="text-[#ff7e21] font-black block text-xl leading-none">R$ ${i.preco.toFixed(2)}</span>
+                <button onclick="adicionarAoCarrinho('${i.produto.replace(/'/g, "\\'")}',${i.preco},'${i.mercado.replace(/'/g, "\\'")}', '${i.imagem}')" class="bg-[#ff7e21] text-white font-bold px-4 py-2 rounded-xl text-xs shadow-lg shadow-[#ff7e21]/20 active:scale-95 transition-all flex items-center gap-1">
+                    <i class="fas fa-plus"></i> Add
+                </button>
+            </div>
+        </div>`; 
+    }); 
 }
 
 async function pesquisarPrecos() { 
     const t = document.getElementById('ean-busca').value; if (!t) return mostrarNotificacao("Digite algo", "erro");
-    mostrarNotificacao("Buscando...");
+    mostrarNotificacao("Buscando no radar...");
     const r = await fetch(`${APPS_SCRIPT_URL}?acao=consultarPrecos&ean=${encodeURIComponent(t)}`, { redirect: 'follow' }); const d = await r.json(); const c = document.getElementById('resultados-consulta'); 
     c.innerHTML = ''; if (!d.resultados || d.resultados.length === 0) { c.innerHTML = '<p class="text-center opacity-50 pt-10 text-sm font-bold text-slate-500">Nenhum produto encontrado.</p>'; return; }
-    d.resultados.forEach(i => { c.innerHTML += `<div class="app-card p-3 mb-3 flex justify-between items-center animate-fade-in gap-3"><div class="produto-img-wrapper"><img src="${i.imagem || FallbackImage}" onerror="this.src='${FallbackImage}'"></div><div class="flex-1 flex justify-between items-center overflow-hidden"><div class="w-[55%] pr-2"><b class="text-slate-800 text-sm block truncate mb-0.5">${i.produto}</b><span class="text-[10px] text-slate-500 font-bold bg-slate-100 px-1.5 py-0.5 rounded">${i.mercado}</span></div><div class="text-right shrink-0"><span class="text-emerald-600 font-black block text-xl mb-1">R$ ${i.preco.toFixed(2)}</span><button onclick="adicionarAoCarrinho('${i.produto.replace(/'/g, "\\'")}',${i.preco},'${i.mercado.replace(/'/g, "\\'")}', '${i.imagem}')" class="bg-emerald-50 text-emerald-600 font-bold px-3 py-1 rounded-lg text-xs w-full hover:bg-emerald-100">+ Add</button></div></div></div>`; }); 
+    
+    d.resultados.forEach(i => { 
+        c.innerHTML += `
+        <div class="app-card p-4 mb-4 flex justify-between items-center animate-fade-in gap-3 border border-white/5 bg-[#161e2d] rounded-2xl">
+            <div class="w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-[#0a0f18] border border-[#ff7e21]/20">
+                <img src="${i.imagem || FallbackImage}" onerror="this.src='${FallbackImage}'" class="w-full h-full object-cover">
+            </div>
+            <div class="flex-1 flex flex-col overflow-hidden">
+                <b class="text-white text-sm block truncate mb-1">${i.produto}</b>
+                <div class="flex items-center gap-2 mb-1.5">
+                    <span class="text-[9px] text-[#ff7e21] font-bold bg-[#ff7e21]/10 px-2 py-0.5 rounded uppercase tracking-wider">${i.mercado}</span>
+                </div>
+                <span class="text-[10px] text-slate-400 font-medium truncate"><i class="fas fa-user-edit text-slate-500 mr-1"></i> Por: ${i.usuario || 'Anônimo'}</span>
+            </div>
+            <div class="text-right shrink-0 flex flex-col items-end gap-2">
+                <span class="text-[#ff7e21] font-black block text-xl leading-none">R$ ${i.preco.toFixed(2)}</span>
+                <button onclick="adicionarAoCarrinho('${i.produto.replace(/'/g, "\\'")}',${i.preco},'${i.mercado.replace(/'/g, "\\'")}', '${i.imagem}')" class="bg-[#ff7e21] text-white font-bold px-4 py-2 rounded-xl text-xs shadow-lg shadow-[#ff7e21]/20 active:scale-95 transition-all flex items-center gap-1">
+                    <i class="fas fa-plus"></i> Add
+                </button>
+            </div>
+        </div>`; 
+    }); 
 }
 
 function mostrarNotificacao(m, tipo = 'sucesso') { 
     const t = document.getElementById('toast-notification'); document.getElementById('toast-message').textContent = m; const icon = document.getElementById('toast-icon');
     if(tipo === 'erro') { t.style.backgroundColor = '#ef4444'; icon.innerHTML = '<i class="fas fa-exclamation-triangle"></i>'; } 
-    else { t.style.backgroundColor = '#1e293b'; icon.innerHTML = '<i class="fas fa-check-circle text-emerald-400"></i>'; }
+    else { t.style.backgroundColor = '#ffffff'; icon.innerHTML = '<i class="fas fa-check-circle text-[#ff7e21]"></i>'; }
     t.classList.remove('-translate-y-32', 'opacity-0'); setTimeout(() => t.classList.add('-translate-y-32', 'opacity-0'), 3000); 
 }
 
 async function iniciarCamera(m) { modoScanAtual = m; document.getElementById('scanner-modal').classList.remove('hidden'); document.getElementById('scanner-modal').classList.add('flex'); try { html5QrCode = new Html5Qrcode("reader"); scannerIsRunning = true; await html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess); } catch(e){mostrarNotificacao("Erro na câmera", "erro"); fecharCamera(); } }
 function fecharCamera() { if(scannerIsRunning && html5QrCode) { html5QrCode.stop(); scannerIsRunning = false; } document.getElementById('scanner-modal').classList.add('hidden'); document.getElementById('scanner-modal').classList.remove('flex');}
-async function onScanSuccess(t) { fecharCamera(); if (modoScanAtual === 'pesquisar') { trocarAba('consultar'); document.getElementById('ean-busca').value = t; pesquisarPrecos(); } else { trocarAba('registrar'); document.getElementById('registrar-home').classList.add('hidden'); document.getElementById('price-form-section').classList.remove('hidden'); document.getElementById('ean-field').value = t; document.getElementById('product-name').value = "Buscando..."; try { const res = await fetch(`${APPS_SCRIPT_URL}?ean=${t}`, { redirect: 'follow' }); const data = await res.json(); document.getElementById('product-name').value = data.nome || ""; if (data.imagem && data.imagem.startsWith('http')) { document.getElementById('image-url-field').value = data.imagem; document.getElementById('preview-imagem').src = data.imagem; document.getElementById('preview-imagem').classList.remove('hidden'); document.getElementById('btn-camera-foto').classList.add('hidden'); } } catch(e) { document.getElementById('product-name').value = ""; } } }
+
+// =========================================================================
+// O SEGREDO DO "INATIVO" RESOLVIDO!
+// =========================================================================
+async function onScanSuccess(t) { 
+    fecharCamera(); 
+    if (modoScanAtual === 'pesquisar') { 
+        trocarAba('consultar'); document.getElementById('ean-busca').value = t; pesquisarPrecos(); 
+    } else { 
+        trocarAba('registrar'); 
+        document.getElementById('registrar-home').classList.add('hidden'); 
+        document.getElementById('price-form-section').classList.remove('hidden'); 
+        document.getElementById('ean-field').value = t; 
+        document.getElementById('product-name').value = "Buscando dados..."; 
+        
+        // Limpa a foto anterior
+        const imgP = document.getElementById('preview-imagem');
+        imgP.src = ''; imgP.classList.add('hidden');
+        
+        // Põe o spinner de carregamento na câmera
+        const iconCamera = document.querySelector('#btn-camera-foto i');
+        if(iconCamera) iconCamera.className = 'fas fa-circle-notch fa-spin text-[#ff7e21] text-xl';
+        
+        try { 
+            const res = await fetch(`${APPS_SCRIPT_URL}?ean=${t}`, { redirect: 'follow' }); 
+            const data = await res.json(); 
+            document.getElementById('product-name').value = data.nome || ""; 
+            
+            if (data.imagem && data.imagem.startsWith('http')) { 
+                document.getElementById('image-url-field').value = data.imagem; 
+                imgP.src = data.imagem; 
+                imgP.classList.remove('hidden'); 
+                // Esconde O ÍCONE (opacity-0) e não o botão, permitindo clicar de novo!
+                if(iconCamera) iconCamera.className = 'fas fa-camera text-slate-500 opacity-0'; 
+            } else {
+                // Se não achar foto na API, volta o ícone da câmera para o usuário bater a foto
+                if(iconCamera) iconCamera.className = 'fas fa-camera text-slate-500 text-xl';
+            }
+        } catch(e) { 
+            document.getElementById('product-name').value = ""; 
+            if(iconCamera) iconCamera.className = 'fas fa-camera text-slate-500 text-xl';
+        } 
+    } 
+}
+
 async function salvarPreco(e) { e.preventDefault();mostrarNotificacao("Salvando..."); const p = { ean: document.getElementById('ean-field').value, produto: document.getElementById('product-name').value, preco: document.getElementById('price').value, mercado: document.getElementById('market').value, usuario: document.getElementById('username').value, imagem: document.getElementById('image-url-field').value }; await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(p), mode: 'no-cors' }); mostrarNotificacao("Salvo com sucesso!"); setTimeout(() => location.reload(), 1500); }
 function comprimirImagem(file) { return new Promise((resolve) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = (e) => { const img = new Image(); img.src = e.target.result; img.onload = () => { const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); const scale = 800 / img.width; canvas.width = 800; canvas.height = img.height * scale; ctx.drawImage(img, 0, 0, canvas.width, canvas.height); resolve(canvas.toDataURL('image/jpeg', 0.6)); }; }; }); }
 
@@ -291,8 +397,34 @@ document.addEventListener('DOMContentLoaded', () => {
     atualizarContadorCarrinho(); 
     document.getElementById('btn-enviar-chat').addEventListener('click', enviarMensagemGemini);
     document.getElementById('chat-input').addEventListener('keypress', function (e) { if (e.key === 'Enter') enviarMensagemGemini(); });
-    const btnFoto = document.getElementById('btn-camera-foto'); const inputFoto = document.getElementById('input-foto-produto'); const imgPreview = document.getElementById('preview-imagem'); const urlField = document.getElementById('image-url-field');
-    btnFoto.addEventListener('click', () => inputFoto.click()); inputFoto.addEventListener('change', async (e) => { if(e.target.files && e.target.files[0]) { btnFoto.innerHTML = '<i class="fas fa-circle-notch fa-spin text-emerald-500"></i>'; const file = e.target.files[0]; try { const base64 = await comprimirImagem(file); imgPreview.src = base64; imgPreview.classList.remove('hidden'); btnFoto.classList.add('hidden'); urlField.value = base64; } catch(err) { mostrarNotificacao("Erro", "erro"); btnFoto.innerHTML = '<i class="fas fa-camera text-slate-400 text-lg"></i>'; } } });
+    
+    // Tratamento correto do clique da câmera para manter o botão ativo
+    const btnFoto = document.getElementById('btn-camera-foto'); 
+    const inputFoto = document.getElementById('input-foto-produto'); 
+    const imgPreview = document.getElementById('preview-imagem'); 
+    const urlField = document.getElementById('image-url-field');
+    
+    if(btnFoto && inputFoto) {
+        btnFoto.addEventListener('click', () => inputFoto.click()); 
+        inputFoto.addEventListener('change', async (e) => { 
+            if(e.target.files && e.target.files[0]) { 
+                const iconeCamera = btnFoto.querySelector('i');
+                if(iconeCamera) iconeCamera.className = 'fas fa-circle-notch fa-spin text-[#ff7e21] text-xl'; 
+                const file = e.target.files[0]; 
+                try { 
+                    const base64 = await comprimirImagem(file); 
+                    imgPreview.src = base64; 
+                    imgPreview.classList.remove('hidden'); 
+                    if(iconeCamera) iconeCamera.className = 'fas fa-camera text-slate-500 opacity-0'; 
+                    urlField.value = base64; 
+                } catch(err) { 
+                    mostrarNotificacao("Erro", "erro"); 
+                    if(iconeCamera) iconeCamera.className = 'fas fa-camera text-slate-400 text-xl'; 
+                } 
+            } 
+        });
+    }
+
     document.getElementById('filtro-mercado-catalogo').addEventListener('change', (e) => { const v = e.target.value; if(v === 'todos') atualizarListaCatalogo(catalogoDados); else atualizarListaCatalogo(catalogoDados.filter(i => i.mercado === v)); });
     document.getElementById('btn-pesquisar').addEventListener('click', pesquisarPrecos);
     document.getElementById('price-form').addEventListener('submit', salvarPreco);
