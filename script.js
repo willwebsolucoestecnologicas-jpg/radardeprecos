@@ -464,46 +464,49 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-// =========================================================================
-// CHECKOUT E PAGAMENTO (Modelo Profissional)
+// CHECKOUT E PAGAMENTO REAL
 // =========================================================================
 async function iniciarCheckoutProfissional() {
     if (carrinho.length === 0) {
         return mostrarNotificacao("Sua cesta está vazia!", "erro");
     }
 
-    // Pega o botão para fazer a animação de carregamento
     const btn = document.getElementById('btn-checkout');
     const conteudoOriginal = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Conectando banco...';
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Gerando Pedido...';
     btn.disabled = true;
 
-    // Calcula o total
     const totalTexto = document.getElementById('cart-total-price').textContent.replace('R$ ', '').replace(',', '.');
     const totalFloat = parseFloat(totalTexto);
     const userName = currentUser ? currentUser.displayName : "Usuário Anônimo";
 
-    const dadosPedido = {
+    // Prepara os dados para o servidor
+    const payload = {
+        acao: "criarPedido", // Isso avisa o code.gs qual rota tomar
         cliente: userName,
         total: totalFloat,
         itens: carrinho
     };
 
     try {
-        /* ⚠️ AQUI ENTRARÁ A CONEXÃO COM SEU CODE.GS E MERCADO PAGO 
-        Como estamos na fase de montagem, deixei um alerta simulando o sucesso 
-        para você ver o botão funcionando sem travar o app.
-        */
+        // Envia para a sua planilha
+        const resposta = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload),
+            mode: 'no-cors' // Usamos no-cors no Apps Script por padrão
+        });
+
+        mostrarNotificacao("Pedido gerado com sucesso!");
         
+        // Simula redirecionamento para o pagamento
         setTimeout(() => {
-            alert(`✅ Simulação de Checkout!\n\nCliente: ${userName}\nTotal: R$ ${totalFloat.toFixed(2)}\n\nNa próxima etapa, este botão vai gerar o código PIX Split do Mercado Pago.`);
-            
-            btn.innerHTML = conteudoOriginal;
-            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check"></i> Pedido Registrado!';
+            // Aqui vamos limpar o carrinho e redirecionar no futuro
+            limparCarrinho();
         }, 1500);
 
     } catch (e) {
-        mostrarNotificacao("Erro ao gerar pedido", "erro");
+        mostrarNotificacao("Erro de conexão", "erro");
         btn.innerHTML = conteudoOriginal;
         btn.disabled = false;
     }
