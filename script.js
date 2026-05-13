@@ -25,20 +25,35 @@ let historicoChat = JSON.parse(localStorage.getItem('kalango_chat_history')) || 
 const FallbackImage = 'logokalango.png';
 
 // =========================================================================
-// SPLASH SCREEN (INTRO)
+// =========================================================================
+// SPLASH SCREEN (SINCRONIZADA COM O VÍDEO)
 // =========================================================================
 window.addEventListener('load', () => {
-    setTimeout(() => {
-        const splash = document.getElementById('splash-screen');
-        if (splash) {
+    const video = document.getElementById('intro-video');
+    const splash = document.getElementById('splash-screen');
+
+    // Função que remove a tela de intro e decide para onde o usuário vai
+    function finalizarIntro() {
+        if (splash && !splash.classList.contains('opacity-0')) {
             splash.classList.add('opacity-0');
             setTimeout(() => {
                 splash.remove(); 
                 if(currentUser) mostrarInterfacePrincipal();
                 else mostrarTelaLogin();
-            }, 700);
+            }, 1000); // Tempo do fade out para ficar suave
         }
-    }, 3000); // 3 Segundos
+    }
+
+    if (video) {
+        // Quando o vídeo acabar naturalmente, chama a função
+        video.onended = finalizarIntro;
+        
+        // Trava de segurança: se a internet falhar e o vídeo não rodar, 
+        // força a abertura do app após 6 segundos para o cliente não ficar preso.
+        setTimeout(finalizarIntro, 6000); 
+    } else {
+        setTimeout(finalizarIntro, 3000);
+    }
 });
 
 function mostrarInterfacePrincipal() {
@@ -48,7 +63,6 @@ function mostrarInterfacePrincipal() {
     const header = document.getElementById('main-header');
     if(header) header.classList.remove('hidden');
     
-    // A CORREÇÃO ESTÁ AQUI: Procurando a caixa correta
     const main = document.getElementById('main-container');
     if(main) {
         main.classList.remove('hidden'); 
@@ -74,7 +88,6 @@ function mostrarTelaLogin() {
         main.classList.remove('flex');
     }
 }
-
 // =========================================================================
 // MENU LATERAL E ABAS
 // =========================================================================
