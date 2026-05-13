@@ -138,7 +138,7 @@ async function falarComVozDoKalango(texto, isModoVoz = false) {
     const P1 = "w8U2w2dwLljaTDN0Dt9AIHiGt8"; const P2 = "olZ4YTYqUJR10T79iTRHZjHCWLJQQJ99CEACYeBjFXJ3w3AAAYACOGrJEO"; const CHAVE_AZURE = P1 + P2; const REGIAO_AZURE = "eastus";
     if (kalangoAudioAtual) { kalangoAudioAtual.pause(); kalangoAudioAtual.currentTime = 0; }
     let textoLimpo = texto.replace(/<[^>]*>?/gm, '').replace(/[*_]/g, '').replace(/\.\.\./g, ', ').replace(/!/g, '. ').replace(/hummm/gi, '');
-    const ssml = `<speak version='1.0' xml:lang='pt-BR'><voice xml:lang='pt-BR' xml:gender='Male' name='pt-BR-AntonioNeural'><prosody rate="1.05" pitch="0%">${textoLimpo}</prosody></voice></speak>`;
+    const ssml = `<speak version='1.0' xml:lang='pt-BR'><voice xml:lang='pt-BR' xml:gender='Male' name='pt-BR-AntonioNeural'><prosody rate="1.07" pitch="1.5%">${textoLimpo}</prosody></voice></speak>`;
     const url = `https://${REGIAO_AZURE}.tts.speech.microsoft.com/cognitiveservices/v1`;
     try {
         const response = await fetch(url, { method: 'POST', headers: { 'Ocp-Apim-Subscription-Key': CHAVE_AZURE, 'Content-Type': 'application/ssml+xml', 'X-Microsoft-OutputFormat': 'audio-16khz-128kbitrate-mono-mp3' }, body: ssml });
