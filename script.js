@@ -1,4 +1,4 @@
-// script.js - v102.0 (Dark Mode Fixes, Photo Preview & Autor)
+// script.js - v103.0 (Integração Firebase Delivery)
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxjbwSid8YPyGIg44ToWcQvGIv_5ibBLLVpHAS6K3HIRmo_x4GcucDBamlGGyd9XNMH/exec'; 
 
@@ -14,6 +14,7 @@ const firebaseConfig = {
 
 if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const auth = firebase.auth();
+const db = firebase.database(); // Inicializando o banco de dados em tempo real
 
 let html5QrCode;
 let scannerIsRunning = false;
@@ -100,7 +101,8 @@ function toggleMenu() {
 }
 
 async function trocarAba(aba) { 
-    const abas = ['registrar', 'consultar', 'catalogo', 'chat']; 
+    // Atualizado para incluir a aba 'motoboy'
+    const abas = ['registrar', 'consultar', 'catalogo', 'chat', 'motoboy']; 
     if (scannerIsRunning) fecharCamera(); 
     
     abas.forEach(a => { 
@@ -119,7 +121,10 @@ async function trocarAba(aba) {
     if (sidebar && !sidebar.classList.contains('-translate-x-full')) toggleMenu(); 
     
     if(aba === 'catalogo') carregarCatalogo(); 
-    if (aba === 'chat') setTimeout(rolarChatParaFim, 100); 
+    if(aba === 'chat') setTimeout(rolarChatParaFim, 100); 
+    
+    // Ativa o monitoramento ao vivo quando o motoboy entra na aba
+    if(aba === 'motoboy') monitorarCorridas();
 }
 
 // =========================================================================
@@ -463,8 +468,8 @@ document.addEventListener('DOMContentLoaded', () => {
     (async () => { try { const res = await fetch(`${APPS_SCRIPT_URL}?acao=buscarMercados`, { redirect: 'follow' }); const d = await res.json(); const s = document.getElementById('market'); if(d.mercados) { s.innerHTML = ''; d.mercados.forEach(m => { const o = document.createElement('option'); o.value = m; o.textContent = m; s.appendChild(o); }); } } catch(e) {} })(); 
 });
 
-
-// CHECKOUT E PAGAMENTO REAL
+// =========================================================================
+// CHECKOUT E PAGAMENTO REAL (MERCADO PAGO)
 // =========================================================================
 async function iniciarCheckoutProfissional() {
     if (carrinho.length === 0) return mostrarNotificacao("Sua cesta está vazia!", "erro");
@@ -488,6 +493,16 @@ async function iniciarCheckoutProfissional() {
         if (dados.link && dados.link.startsWith('http')) {
             mostrarNotificacao("Redirecionando para o Pix...");
             
+            // DISPARA PARA OS MOTOBOYS NO FIREBASE
+            const mercadosUnicos = [...new Set(carrinho.map(i => i.mercado))];
+            db.ref('pedidos_entrega').push({
+                cliente: userName,
+                valorProdutos: totalTexto,
+                mercados: mercadosUnicos,
+                status: 'pendente',
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+
             // Limpa o carrinho antes de sair
             carrinho = [];
             localStorage.removeItem('kalango_cart');
@@ -504,5 +519,78 @@ async function iniciarCheckoutProfissional() {
         mostrarNotificacao("Erro ao conectar com Mercado Pago", "erro");
         btn.innerHTML = conteudoOriginal;
         btn.disabled = false;
+    }
+}
+
+// =========================================================================
+// CENTRAL DO MOTOBOY (TEMPO REAL)
+// =========================================================================
+function monitorarCorridas() {
+    const lista = document.getElementById('lista-corridas');
+    
+    // Ouve a pasta 'pedidos_entrega' no Firebase ao vivo
+    db.ref('pedidos_entrega').on('value', (snapshot) => {
+        lista.innerHTML = '';
+        const dados = snapshot.val();
+        
+        if (!dados) {
+            lista.innerHTML = '<p class="text-center text-slate-600 mt-10 text-sm font-bold">Nenhuma corrida no momento.</p>';
+            return;
+        }
+        
+        let temCorrida = false;
+        const emailMotoboy = currentUser ? currentUser.email : '';
+
+        for (const idPedido in dados) {
+            const p = dados[idPedido];
+            
+            // Se a corrida está livre para qualquer um pegar
+            if (p.status === 'pendente') {
+                temCorrida = true;
+                lista.innerHTML += `
+                <div class="app-card p-4 bg-[#161e2d] border border-[#ff7e21]/30 rounded-2xl animate-fade-in relative overflow-hidden mb-4">
+                    <div class="absolute top-0 right-0 bg-[#ff7e21] text-white text-[10px] font-black px-3 py-1 rounded-bl-lg uppercase">Nova Coleta</div>
+                    <h3 class="text-white font-bold text-lg mb-1 mt-2">${p.cliente}</h3>
+                    <p class="text-slate-400 text-xs mb-4"><i class="fas fa-store text-[#ff7e21] mr-1"></i> Passar em: <b>${p.mercados ? p.mercados.join(', ') : 'Mercados'}</b></p>
+                    <div class="flex justify-between items-center pt-3 border-t border-white/5">
+                        <span class="text-emerald-400 font-black text-xl">R$ 7,00 <span class="text-[9px] text-slate-500 uppercase block">Taxa Estimada</span></span>
+                        <button onclick="aceitarCorrida('${idPedido}')" class="bg-[#ff7e21] text-white px-6 py-2 rounded-xl font-bold text-sm shadow-lg shadow-[#ff7e21]/20 active:scale-95 transition-all flex items-center gap-2"><i class="fas fa-check"></i> Pegar</button>
+                    </div>
+                </div>`;
+            } 
+            // Se a corrida já é MINHA
+            else if (p.status === 'aceito' && p.entregadorEmail === emailMotoboy) {
+                temCorrida = true;
+                lista.innerHTML += `
+                <div class="app-card p-4 bg-[#0a1811] border border-emerald-500/30 rounded-2xl animate-fade-in mb-4">
+                    <h3 class="text-emerald-400 font-bold text-sm mb-2 uppercase tracking-widest"><i class="fas fa-motorcycle mr-2"></i> Sua Corrida</h3>
+                    <p class="text-white font-bold text-lg mb-1">${p.cliente}</p>
+                    <p class="text-slate-400 text-xs mb-4">Mercados: ${p.mercados ? p.mercados.join(', ') : 'Mercados'}</p>
+                    <button onclick="finalizarCorrida('${idPedido}')" class="w-full bg-emerald-500 text-[#0a1811] py-3 rounded-xl font-black text-sm shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">Confirmar Entrega</button>
+                </div>`;
+            }
+        }
+        
+        if(!temCorrida && lista.innerHTML === '') {
+            lista.innerHTML = '<p class="text-center text-slate-600 mt-10 text-sm font-bold">Aguardando novos chamados...</p>';
+        }
+    });
+}
+
+function aceitarCorrida(id) {
+    if(!currentUser) return mostrarNotificacao("Faça login para aceitar corridas!", "erro");
+    // Trava a corrida no Firebase
+    db.ref('pedidos_entrega/' + id).update({
+        status: 'aceito',
+        entregadorNome: currentUser.displayName,
+        entregadorEmail: currentUser.email
+    });
+    falarComVozDoKalango("Corrida aceita. Boa viagem!", false);
+}
+
+function finalizarCorrida(id) {
+    if(confirm("Confirma que entregou os produtos com sucesso?")) {
+        db.ref('pedidos_entrega/' + id).update({ status: 'concluido' });
+        mostrarNotificacao("Entrega finalizada com sucesso!");
     }
 }
