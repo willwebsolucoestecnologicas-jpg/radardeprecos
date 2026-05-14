@@ -11,6 +11,7 @@
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="h-[100dvh] flex flex-col overflow-hidden select-none bg-[#0a0f18] text-slate-100 relative">
@@ -51,7 +52,15 @@
             <button onclick="trocarAba('registrar')" id="nav-registrar" class="sidebar-link w-full text-left flex items-center gap-4 px-8 py-4">
                 <i class="fas fa-plus-square text-xl w-6"></i> Novo Registro
             </button>
+            
             <div class="h-px bg-white/5 my-4 mx-8"></div>
+            
+            <button onclick="trocarAba('motoboy')" id="nav-motoboy" class="sidebar-link w-full text-left flex items-center gap-4 px-8 py-4">
+                <i class="fas fa-motorcycle text-xl w-6"></i> Painel Entregador
+            </button>
+
+            <div class="h-px bg-white/5 my-4 mx-8"></div>
+            
             <button onclick="toggleCarrinho(); toggleMenu();" class="sidebar-link w-full text-left flex items-center gap-4 px-8 py-4 !text-[#ff7e21]">
                 <i class="fas fa-shopping-bag text-xl w-6"></i> Meu Carrinho
             </button>
@@ -158,6 +167,22 @@
                     </div>
                     <button type="submit" class="w-full btn-primary py-5 rounded-2xl text-lg mt-4">Sincronizar Oferta</button>
                 </form>
+            </div>
+        </div>
+
+        <div id="motoboy-container" class="hidden flex-1 flex flex-col bg-[#0a0f18] p-6 overflow-y-auto w-full relative z-10 animate-fade-in">
+            <div class="flex items-center gap-3 mb-6 mt-4">
+                <div class="w-12 h-12 rounded-full bg-[#ff7e21]/10 flex items-center justify-center text-[#ff7e21]">
+                    <i class="fas fa-satellite-dish text-xl animate-pulse"></i>
+                </div>
+                <div>
+                    <h2 class="text-white font-black text-2xl leading-none">Radar Kalango</h2>
+                    <span class="text-slate-400 text-xs tracking-widest uppercase">Corridas ao vivo</span>
+                </div>
+            </div>
+            
+            <div id="lista-corridas" class="flex-1 flex flex-col gap-4 pb-20">
+                <p class="text-center text-slate-600 mt-10 text-sm font-bold"><i class="fas fa-circle-notch fa-spin mr-2"></i>Buscando chamados...</p>
             </div>
         </div>
 
