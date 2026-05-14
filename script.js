@@ -249,7 +249,6 @@ function adicionarAoCarrinho(produto, preco, mercado, imagem = '') { const id = 
 function toggleCarrinho() { const m = document.getElementById('cart-modal'); const c = document.getElementById('cart-content'); if (m.classList.contains('hidden')) { renderizarCarrinho(); m.classList.remove('hidden'); setTimeout(() => c.classList.remove('translate-y-full'), 10); } else { c.classList.add('translate-y-full'); setTimeout(() => m.classList.add('hidden'), 300); } }
 function atualizarContadorCarrinho() { const c = carrinho.reduce((a, b) => a + b.qtd, 0); const b = document.getElementById('cart-count'); if(b) { b.textContent = c; b.classList.toggle('hidden', c === 0); } }
 function alterarQtd(id, d) { const i = carrinho.find(x => x.id === id); if (i) { i.qtd += d; if (i.qtd <= 0) carrinho = carrinho.filter(x => x.id !== id); } salvarCarrinho(); renderizarCarrinho(); }
-function limparCarrinho() { if(confirm("Esvaziar o carrinho?")) { carrinho = []; salvarCarrinho(); renderizarCarrinho(); toggleCarrinho(); historicoChat = []; localStorage.removeItem('kalango_chat_history'); } }
 function salvarCarrinho() { localStorage.setItem('kalango_cart', JSON.stringify(carrinho)); atualizarContadorCarrinho(); }
 
 function renderizarCarrinho() { 
@@ -313,8 +312,29 @@ function renderizarCarrinho() {
     }
 }
 
-function abrirModalLimpeza() { if(confirm("Esvaziar o carrinho?")) { limparCarrinho(); } }
+// =========================================================================
+// FUNÇÕES DE LIMPEZA DO CARRINHO (MODAL CUSTOMIZADO)
+// =========================================================================
+function abrirModalLimpeza() { 
+    document.getElementById('custom-confirm-modal').classList.remove('hidden'); 
+    document.getElementById('custom-confirm-modal').classList.add('flex'); 
+}
 
+function fecharModalLimpeza() { 
+    document.getElementById('custom-confirm-modal').classList.add('hidden'); 
+    document.getElementById('custom-confirm-modal').classList.remove('flex'); 
+}
+
+function limparCarrinho() { 
+    carrinho = []; 
+    salvarCarrinho(); 
+    renderizarCarrinho(); 
+    toggleCarrinho(); // Fecha a aba do carrinho
+    historicoChat = []; 
+    localStorage.removeItem('kalango_chat_history'); 
+    fecharModalLimpeza(); // Fecha o nosso modal bonito
+    mostrarNotificacao("Cesta esvaziada!");
+}
 async function carregarCatalogo() { try { const r = await fetch(`${APPS_SCRIPT_URL}?acao=listarCatalogo`, { redirect: 'follow' }); const d = await r.json(); catalogoDados = d.catalogo || []; atualizarListaCatalogo(catalogoDados); } catch(e) {} }
 
 function atualizarListaCatalogo(d) { 
